@@ -1,278 +1,199 @@
 import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  AreaChart, Area, PieChart, Pie, Cell, Legend, ReferenceLine
+  AreaChart, Area, ReferenceArea, Label
 } from 'recharts';
-import { Trophy, Activity, Sigma, Hash, Filter, Info, Flame, Binary, LayoutGrid, Thermometer } from 'lucide-react';
+import { Activity, Filter, Info, Flame, Snowflake, Layout } from 'lucide-react';
 import rawData from './mega_sena_data.json';
 
-const COLORS = {
-  indigo: '#6366f1',
-  pink: '#ec4899',
-  emerald: '#10b981',
-  amber: '#f59e0b',
-  rose: '#f43f5e',
-  slate: '#64748b'
-};
-
-// --- COMPONENTES AUXILIARES ---
-const Badge = ({ children, color = "indigo" }) => (
-  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-${color}-100 text-${color}-700 border border-${color}-200`}>
-    {children}
-  </span>
-);
-
-const StatBox = ({ title, value, percent, description, color }) => (
-  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-    <p className="text-xs font-bold text-slate-400 uppercase mb-1">{title}</p>
-    <div className="flex items-baseline gap-2">
-      <span className="text-2xl font-black text-slate-800">{value}</span>
-      <span className={`text-sm font-bold text-${color}-600`}>{percent}%</span>
-    </div>
-    <p className="text-[10px] text-slate-500 leading-tight mt-2">{description}</p>
-  </div>
-);
-
-// --- VOLANTE VISUAL ---
-const VolanteVisual = () => {
-  const primos = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
-  return (
-    <div className="grid grid-cols-10 gap-1 p-4 bg-slate-900 rounded-xl border-4 border-slate-800 shadow-inner">
-      {Array.from({ length: 60 }, (_, i) => i + 1).map(num => {
-        const isPrimo = primos.includes(num);
-        const q = num <= 30 ? (num % 10 <= 5 && num % 10 !== 0 ? 'Q1' : 'Q2') : (num % 10 <= 5 && num % 10 !== 0 ? 'Q3' : 'Q4');
-        return (
-          <div key={num} className={`aspect-square flex items-center justify-center text-[8px] font-bold rounded-sm border ${isPrimo ? 'bg-amber-500/20 border-amber-500 text-amber-500' : 'border-slate-700 text-slate-600'}`}>
-            {num}
-          </div>
-        );
-      })}
-    </div>
-  );
+// --- ESTILO E CORES ---
+const THEME = {
+  gold: '#10b981', // Verde esmeralda para zonas de alta prob
+  risk: '#94a3b8', // Cinza para zonas irrelevantes
+  primary: '#4f46e5', // Indigo
+  bg: '#f8fafc'
 };
 
 export default function Dashboard() {
   const [filterVirada, setFilterVirada] = useState(false);
+  const [filterYear, setFilterYear] = useState("all");
+
+  // --- LOGICA DE DADOS ---
+  const years = useMemo(() => [...new Set(rawData.map(g => g.data.substring(0, 4)))].sort((a, b) => b - a), []);
 
   const filteredData = useMemo(() => {
-    return rawData.filter(game => filterVirada ? String(game.tipo).toUpperCase() === 'VIRADA' : true);
-  }, [filterVirada]);
+    return rawData.filter(game => {
+      const matchVirada = filterVirada ? String(game.tipo).toUpperCase() === 'VIRADA' : true;
+      const matchYear = filterYear === "all" ? true : game.data.startsWith(filterYear);
+      return matchVirada && matchYear;
+    });
+  }, [filterVirada, filterYear]);
 
-  // --- ENGINE DE CÁLCULOS ---
   const stats = useMemo(() => {
     const total = filteredData.length;
-    const dist = { soma: {}, primos: {}, fib: {}, signature: {}, lines: {}, cols: {}, evens: {}, numbers: {} };
-    
+    const somaBuckets = {};
+    const finals = Array(10).fill(0);
+    const lines = Array(6).fill(0);
+    const freq = Array(61).fill(0);
+
     filteredData.forEach(g => {
-      const s = g.analises;
-      dist.soma[Math.floor(s.soma/10)*10] = (dist.soma[Math.floor(s.soma/10)*10] || 0) + 1;
-      dist.primos[s.primos] = (dist.primos[s.primos] || 0) + 1;
-      dist.fib[s.fibonacci] = (dist.fib[s.fibonacci] || 0) + 1;
-      dist.signature[s.quadrantes.assinatura] = (dist.signature[s.quadrantes.assinatura] || 0) + 1;
-      dist.lines[s.linhas_vazias] = (dist.lines[s.linhas_vazias] || 0) + 1;
-      dist.cols[s.colunas_vazias] = (dist.cols[s.colunas_vazias] || 0) + 1;
-      dist.evens[s.pares] = (dist.evens[s.pares] || 0) + 1;
-      g.dezenas.forEach(n => dist.numbers[n] = (dist.numbers[n] || 0) + 1);
+      // Somas
+      const s = g.analises.soma;
+      const b = Math.floor(s / 10) * 10;
+      somaBuckets[b] = (somaBuckets[b] || 0) + 1;
+      // Finais (Colunas) e Linhas
+      g.dezenas.forEach(d => {
+        finals[d % 10 === 0 ? 9 : (d % 10) - 1]++;
+        lines[Math.ceil(d / 10) - 1]++;
+        freq[d]++;
+      });
     });
 
-    const toArr = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value, percent: (value/total*100).toFixed(1) })).sort((a,b) => Number(a.name) - Number(b.name));
-    
-    // Probabilidades combinadas
-    const probSomaOuro = toArr(dist.soma).filter(x => x.name >= 160 && x.name <= 200).reduce((a,b) => a + Number(b.percent), 0);
-    const probParImparEquil = (( (dist.evens[2] || 0) + (dist.evens[3] || 0) + (dist.evens[4] || 0) ) / total * 100).toFixed(1);
+    const somaArr = Object.entries(somaBuckets).map(([name, value]) => ({ 
+      name: Number(name), 
+      value, 
+      percent: (value/total*100).toFixed(1) 
+    })).sort((a,b) => a.name - b.name);
 
-    return {
-      soma: toArr(dist.soma),
-      primos: toArr(dist.primos),
-      fib: toArr(dist.fib),
-      signature: toArr(dist.signature).sort((a,b) => b.value - a.value).slice(0, 5),
-      lines: toArr(dist.lines),
-      cols: toArr(dist.cols),
-      parImpar: [{name: 'Pares', value: filteredData.reduce((a,b)=>a+b.analises.pares, 0)}, {name: 'Ímpares', value: filteredData.reduce((a,b)=>a+b.analises.impares, 0)}],
-      topNumbers: Object.entries(dist.numbers).sort((a,b)=>b[1]-a[1]).slice(0, 10),
-      coldNumbers: Object.entries(dist.numbers).sort((a,b)=>a[1]-b[1]).slice(0, 10),
-      probSomaOuro,
-      probParImparEquil,
-      total
-    };
+    return { somaArr, finals, lines, freq, total };
   }, [filteredData]);
 
   return (
-    <div className="min-h-screen bg-[#F8F9FF] text-slate-900 pb-20 font-sans">
-      <header className="bg-white border-b border-indigo-50 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-lg"><Activity className="text-white" /></div>
-            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Regina <span className="text-indigo-600">Beretta</span> DataLab</h1>
-          </div>
-          <button onClick={() => setFilterVirada(!filterVirada)} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${filterVirada ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-500'}`}>
-            {filterVirada ? '✨ MEGA DA VIRADA' : 'MODO COMPLETO'}
-          </button>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-10">
+    <div className="min-h-screen bg-[#F1F5F9] text-slate-800 font-sans p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
         
-        {/* KPI DASHBOARD */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-          <StatBox title="Soma Ouro (160-200)" value="Destaque" percent={stats.probSomaOuro.toFixed(1)} color="emerald" description="Chance de o sorteio cair neste intervalo." />
-          <StatBox title="Equilíbrio Par/Ímpar" value="2:4 a 4:2" percent={stats.probParImparEquil} color="indigo" description="Jogos com distribuição equilibrada." />
-          <StatBox title="Assinatura 3-2-1-0" value="Top #1" percent={stats.signature[0]?.percent} color="pink" description="Padrão mais frequente de quadrantes." />
-          <StatBox title="Finais Repetidos" value="5 Vazias" percent={stats.cols.find(x=>x.name==="5")?.percent} color="amber" description="Probabilidade de repetir ao menos um final." />
-        </div>
-
-        {/* ROW 1: SOMA E PAR/ÍMPAR */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          <div className="lg:col-span-2 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h3 className="text-lg font-black flex items-center gap-2"><Sigma className="text-indigo-600"/> CURVA DE SOMA</h3>
-                <p className="text-xs text-slate-400">Distribuição histórica das somas das 6 dezenas.</p>
-              </div>
-              <Badge color="emerald">Probabilidade: {stats.probSomaOuro.toFixed(1)}%</Badge>
-            </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={stats.soma}>
-                  <XAxis dataKey="name" tick={{fontSize: 10}} />
-                  <Tooltip />
-                  <ReferenceLine x="160" stroke="#10b981" strokeDasharray="3 3" />
-                  <ReferenceLine x="200" stroke="#10b981" strokeDasharray="3 3" />
-                  <Area type="monotone" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.1} strokeWidth={3} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+        {/* HEADER E FILTROS */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight uppercase">MegaSena <span className="text-indigo-600">Analytics</span></h1>
+            <p className="text-xs font-bold text-slate-400">ANÁLISE ESTRATÉGICA POR REGINA BERETTA</p>
           </div>
-          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-lg font-black mb-6">EQUILÍBRIO GERAL</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={stats.parImpar} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                    <Cell fill={COLORS.indigo} /><Cell fill={COLORS.rose} />
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="flex flex-wrap gap-4">
+            <select 
+              className="bg-slate-100 border-none rounded-lg text-sm font-bold p-2 px-4 focus:ring-2 focus:ring-indigo-500"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+            >
+              <option value="all">TODOS OS ANOS</option>
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button 
+              onClick={() => setFilterVirada(!filterVirada)}
+              className={`px-4 py-2 rounded-lg text-xs font-black transition-all ${filterVirada ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}
+            >
+              MEGA DA VIRADA
+            </button>
           </div>
         </div>
 
-        {/* ROW 2: QUADRANTES EXPLICAÇÃO VISUAL */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="text-lg font-black mb-2 flex items-center gap-2"><LayoutGrid className="text-pink-500"/> MAPA DE QUADRANTES</h3>
-            <p className="text-xs text-slate-400 mb-6">Entenda como o volante é dividido para a análise.</p>
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              <div className="p-4 bg-slate-50 rounded-lg text-center border border-dashed border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Superior Esquerdo (Q1)</span>
-                <p className="text-xs font-bold text-slate-600">01 a 25</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-lg text-center border border-dashed border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Superior Direito (Q2)</span>
-                <p className="text-xs font-bold text-slate-600">06 a 30</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-lg text-center border border-dashed border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Inferior Esquerdo (Q3)</span>
-                <p className="text-xs font-bold text-slate-600">31 a 55</p>
-              </div>
-              <div className="p-4 bg-slate-50 rounded-lg text-center border border-dashed border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase">Inferior Direito (Q4)</span>
-                <p className="text-xs font-bold text-slate-600">36 a 60</p>
-              </div>
-            </div>
-            <VolanteVisual />
+        {/* 1. ANALISE DE SOMA (AREA CHART) */}
+        <div className="bg-white rounded-3xl p-8 shadow-sm mb-8 border border-slate-200">
+          <div className="mb-8">
+            <h2 className="text-xl font-black mb-2 uppercase flex items-center gap-2">
+              <Activity className="text-indigo-600"/> Distribuição de Somas
+            </h2>
+            <p className="text-sm text-slate-500">Onde os sorteios se concentram. A área verde representa o <b>Intervalo de Ouro (120-220)</b>.</p>
           </div>
-          <div className="bg-slate-900 p-8 rounded-3xl shadow-xl text-white">
-            <h3 className="text-lg font-black mb-6 flex items-center gap-2"><Trophy className="text-amber-400"/> TOP ASSINATURAS</h3>
-            <div className="space-y-6">
-              {stats.signature.map((s, i) => (
-                <div key={i}>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="font-bold">{s.name}</span>
-                    <span className="text-amber-400">{s.percent}%</span>
+          <div className="h-80 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={stats.somaArr} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" tick={{fontSize: 12}} />
+                <YAxis hide />
+                <Tooltip />
+                {/* Zonas de Probabilidade */}
+                <ReferenceArea x1={120} x2={220} fill="#10b981" fillOpacity={0.1} />
+                <Area type="monotone" dataKey="value" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.2} strokeWidth={4} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Abaixo de 120</span>
+              <span className="text-lg font-black text-slate-400">RARO</span>
+            </div>
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+              <span className="block text-[10px] font-bold text-emerald-600 uppercase">120 a 220</span>
+              <span className="text-lg font-black text-emerald-700">83% DA HISTÓRIA</span>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase">Acima de 220</span>
+              <span className="text-lg font-black text-slate-400">OCASIONAL</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          
+          {/* 2. TERMÔMETRO DE DEZENAS (HEATMAP GRID) */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200">
+            <h2 className="text-lg font-black mb-6 uppercase flex items-center gap-2">
+              <Flame className="text-orange-500"/> Frequência das Dezenas
+            </h2>
+            <div className="grid grid-cols-10 gap-1">
+              {stats.freq.slice(1).map((f, i) => {
+                const max = Math.max(...stats.freq);
+                const opacity = (f / max);
+                return (
+                  <div 
+                    key={i} 
+                    className="aspect-square flex flex-col items-center justify-center rounded-md text-[10px] font-bold transition-all border border-slate-100"
+                    style={{ backgroundColor: `rgba(79, 70, 229, ${opacity})`, color: opacity > 0.5 ? 'white' : '#1e293b' }}
+                    title={`Dezena ${i+1}: saiu ${f} vezes`}
+                  >
+                    {i+1}
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-400" style={{width: `${s.percent}%`}} />
+                )
+              })}
+            </div>
+            <div className="mt-6 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <span>Menos Frequente</span>
+              <div className="h-2 w-32 bg-gradient-to-r from-indigo-50 to-indigo-600 rounded-full" />
+              <span>Mais Frequente</span>
+            </div>
+          </div>
+
+          {/* 3. OCUPAÇÃO DE GRID (LINHAS E COLUNAS) */}
+          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+              <h2 className="text-lg font-black mb-6 uppercase flex items-center gap-2">
+                <Layout className="text-indigo-600"/> Ocupação do Volante
+              </h2>
+              
+              <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">Ocorrência por Linha</p>
+              <div className="flex gap-1 h-8 mb-8">
+                {stats.lines.map((l, i) => (
+                  <div key={i} className="flex-1 bg-indigo-50 rounded-md overflow-hidden relative border border-indigo-100">
+                    <div className="absolute bottom-0 left-0 right-0 bg-indigo-500 transition-all" style={{ height: `${(l/Math.max(...stats.lines)*100)}%` }} />
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black mix-blend-difference text-white">L{i+1}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 p-4 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-[10px] text-slate-400 uppercase font-bold mb-2">Insight de Especialista</p>
-              <p className="text-xs leading-relaxed text-slate-300">
-                O padrão <b>3-2-1-0</b> indica que o sorteio costuma concentrar metade dos números em um quadrante e <b>ignorar completamente</b> outro. Jogar de forma "espalhada" demais é um erro comum.
-              </p>
-            </div>
-          </div>
-        </div>
+                ))}
+              </div>
 
-        {/* ROW 3: LINHAS, COLUNAS, PRIMOS, FIB */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white p-6 rounded-2xl border border-slate-100">
-            <h4 className="text-xs font-black text-slate-400 mb-4 uppercase">Linhas Vazias</h4>
-            <div className="h-40"><ResponsiveContainer><BarChart data={stats.lines}><XAxis dataKey="name" /><Tooltip /><Bar dataKey="value" fill={COLORS.indigo} radius={4}/></BarChart></ResponsiveContainer></div>
-            <p className="text-[10px] mt-4 text-slate-500 italic">Comum: <b>2 ou 3</b> linhas vazias.</p>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-100">
-            <h4 className="text-xs font-black text-slate-400 mb-4 uppercase">Colunas Vazias</h4>
-            <div className="h-40"><ResponsiveContainer><BarChart data={stats.cols}><XAxis dataKey="name" /><Tooltip /><Bar dataKey="value" fill={COLORS.pink} radius={4}/></BarChart></ResponsiveContainer></div>
-            <p className="text-[10px] mt-4 text-slate-500 italic">Comum: <b>5</b> colunas vazias (repetição final).</p>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-100">
-            <h4 className="text-xs font-black text-slate-400 mb-4 uppercase">Qtd Primos</h4>
-            <div className="h-40"><ResponsiveContainer><BarChart data={stats.primos}><XAxis dataKey="name" /><Tooltip /><Bar dataKey="value" fill={COLORS.amber} radius={4}/></BarChart></ResponsiveContainer></div>
-            <p className="text-[10px] mt-4 text-slate-500 italic">Ouro: <b>1 ou 2</b> primos (66%).</p>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-100">
-            <h4 className="text-xs font-black text-slate-400 mb-4 uppercase">Qtd Fibonacci</h4>
-            <div className="h-40"><ResponsiveContainer><BarChart data={stats.fib}><XAxis dataKey="name" /><Tooltip /><Bar dataKey="value" fill={COLORS.emerald} radius={4}/></BarChart></ResponsiveContainer></div>
-            <p className="text-[10px] mt-4 text-slate-500 italic">Ouro: <b>0 ou 1</b> Fibonacci (78%).</p>
-          </div>
-        </div>
-
-        {/* SECTION 4: QUENTES E FRIAS */}
-        <div className="bg-white p-10 rounded-[40px] border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-3 bg-orange-50 rounded-2xl text-orange-600"><Thermometer /></div>
-            <div>
-              <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Termômetro de Dezenas</h3>
-              <p className="text-sm text-slate-400">As dezenas que mais e menos apareceram no período selecionado.</p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><Flame className="text-orange-500" size={16}/> Top 10 Mais Frequentes</h4>
-              <div className="grid grid-cols-5 gap-3">
-                {stats.topNumbers.map(([num, count]) => (
-                  <div key={num} className="bg-orange-50 border border-orange-100 p-3 rounded-xl text-center">
-                    <p className="text-lg font-black text-orange-600">{num}</p>
-                    <p className="text-[8px] text-orange-400 uppercase font-bold">{count}x</p>
+              <p className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">Ocorrência por Final (Coluna)</p>
+              <div className="flex gap-1 h-12">
+                {stats.finals.map((f, i) => (
+                  <div key={i} className="flex-1 bg-indigo-50 rounded-md overflow-hidden relative border border-indigo-100">
+                    <div className="absolute bottom-0 left-0 right-0 bg-indigo-600 transition-all" style={{ height: `${(f/Math.max(...stats.finals)*100)}%` }} />
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black mix-blend-difference text-white">F{i === 9 ? 0 : i+1}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><Activity className="text-blue-500" size={16}/> Top 10 Menos Frequentes</h4>
-              <div className="grid grid-cols-5 gap-3">
-                {stats.coldNumbers.map(([num, count]) => (
-                  <div key={num} className="bg-blue-50 border border-blue-100 p-3 rounded-xl text-center">
-                    <p className="text-lg font-black text-blue-600">{num}</p>
-                    <p className="text-[8px] text-blue-400 uppercase font-bold">{count}x</p>
-                  </div>
-                ))}
+            <div className="mt-8 bg-indigo-900 rounded-2xl p-4 text-white">
+              <div className="flex gap-3 items-center">
+                <Info size={24} className="text-indigo-400" />
+                <p className="text-[11px] leading-tight">
+                  <b>INSIGHT:</b> Finais 0, 5 e 9 costumam ter comportamentos distintos em anos diferentes. Observe a barra de ocupação para evitar colunas saturadas.
+                </p>
               </div>
             </div>
           </div>
+
         </div>
-
-      </main>
-
-      <footer className="text-center py-10 border-t border-slate-100">
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-          © 2025 Data Analysis Project • <a href="https://reberetta.com.br" className="text-indigo-600">Regina Beretta</a>
-        </p>
+      </div>
+      <footer className="text-center mt-12 pb-12">
+        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Regina Beretta © 2025 • Business Intelligence aplicado à sorte</p>
       </footer>
     </div>
   );
