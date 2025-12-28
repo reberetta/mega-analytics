@@ -134,13 +134,14 @@ const ChecklistValidator = () => {
                   Tenha no máximo <b>2 primos</b> e no máximo <b>1 fibonacci</b>. Menos é mais aqui.
                 </span>
               </li>
-              <li className="flex gap-3 items-start bg-indigo-900/60 p-3 rounded-xl border border-indigo-600/50 -mx-2">
-                <CheckCircle2 className="text-rose-400 shrink-0 mt-0.5" size={18} />
-                <span className="text-sm text-indigo-50 leading-snug">
-                  <strong className="text-rose-300 block mb-1">Regra de Ouro (Quentes/Frios):</strong>
-                  Use <b>no máximo 1 número quente</b> (pra surfar a onda) e <b>no máximo 1 número frio</b> (pra tentar a quebra). O resto do jogo deve ser de números neutros.
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">Quentes/Frios:</strong>
+                  Use <b>no máximo 1 número quente</b> (pra surfar a onda) e/ou <b>no máximo 1 número frio</b> (pra tentar a quebra). O resto do jogo deve ser de números neutros.
                 </span>
               </li>
+              
             </ul>
           </div>
 
