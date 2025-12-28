@@ -477,110 +477,91 @@ const ChartLinhasColunas = ({ dataLines, dataCols }) => {
     </div>
   );
 };
+
 /** * =================================================================================
- * [GRÁFICO 6] TERMÔMETRO - VERSÃO CLEAN (LISTAS APENAS)
+ * [GRÁFICO 6] TERMÔMETRO - VERSÃO COMPACTA COM INSIGHTS
  * =================================================================================
  */
 const ChartTermometro = ({ data }) => {
-  // Ordena e pega os Top 10 para dar mais opções de análise
-  const topQuentes = [...data].sort((a, b) => b.freqLast20 - a.freqLast20).slice(0, 10);
-  const topFrias = [...data].sort((a, b) => b.lag - a.lag).slice(0, 10);
+  // Top 5 para exibição
+  const topQuentes = [...data].sort((a, b) => b.freqLast20 - a.freqLast20).slice(0, 5);
+  const topFrias = [...data].sort((a, b) => b.lag - a.lag).slice(0, 5);
+
+  // Cálculos rápidos para gerar o texto do insight dinamicamente
+  const mediaQuentes = topQuentes.reduce((acc, curr) => acc + curr.freqLast20, 0) / 5;
+  const maisAtrasada = topFrias[0]?.lag || 0;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16 border-b border-slate-100 pb-16">
+    <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 mb-10 overflow-hidden">
       
-      {/* --- CARTÃO QUENTES (PEGANDO FOGO) --- */}
-      <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 relative overflow-hidden">
-        {/* Header Visual */}
-        <div className="flex items-center gap-3 mb-6 relative z-10">
-          <div className="p-3 bg-rose-50 rounded-2xl text-rose-500 shadow-sm border border-rose-100">
-            <Flame size={28} strokeWidth={2.5} />
-          </div>
-          <div>
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Números Quentes</h3>
-            <p className="text-sm text-slate-400 font-medium">Mais frequentes nos últimos 20 concursos</p>
-          </div>
+      {/* HEADER COMPACTO */}
+      <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Thermometer className="text-slate-400" size={20} />
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest">Destaques (Top 5)</h3>
         </div>
+        <span className="text-[10px] text-slate-400 font-medium hidden sm:block">
+          Estratégia: Combine 1 Quente + 1 Frio no seu jogo.
+        </span>
+      </div>
 
-        {/* Lista Quentes */}
-        <div className="space-y-3 relative z-10">
-          <div className="grid grid-cols-5 text-xs font-bold text-slate-300 uppercase tracking-widest mb-2 px-2">
-            <span className="col-span-1">Número</span>
-            <span className="col-span-3">Intensidade</span>
-            <span className="col-span-1 text-right">Freq.</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+        
+        {/* --- LADO ESQUERDO: QUENTES --- */}
+        <div className="p-5 flex flex-col h-full">
+          <div className="flex items-center gap-2 mb-4">
+            <Flame className="text-rose-500 fill-rose-500" size={16} />
+            <span className="text-sm font-bold text-rose-700">Mais Frequentes (Últimos 20)</span>
           </div>
-          
-          {topQuentes.map((stat, i) => (
-            <div key={stat.num} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-rose-200 hover:bg-rose-50/30 transition-all group">
-              <div className="flex items-center gap-3 w-16">
-                 <span className="text-[10px] font-bold text-slate-300 w-4">#{i+1}</span>
-                 <span className="text-lg font-black text-slate-700">{String(stat.num).padStart(2, '0')}</span>
-              </div>
-              
-              {/* Barra de Progresso */}
-              <div className="flex-1 mx-4 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-rose-400 to-red-600 shadow-[0_0_10px_rgba(244,63,94,0.5)]" 
-                  style={{ width: `${Math.min((stat.freqLast20 / 6) * 100, 100)}%` }} // Escala baseada em ~6 ocorrências max
-                />
-              </div>
 
-              <div className="w-12 text-right">
-                <span className="text-sm font-bold text-rose-600 bg-rose-100 px-2 py-1 rounded-lg border border-rose-200 group-hover:bg-rose-500 group-hover:text-white transition-colors">
+          <div className="grid grid-cols-5 gap-2 mb-4">
+            {topQuentes.map((stat) => (
+              <div key={stat.num} className="flex flex-col items-center p-2 rounded-xl bg-rose-50 border border-rose-100 transition-transform hover:scale-105">
+                <span className="text-lg font-black text-slate-700">{String(stat.num).padStart(2, '0')}</span>
+                <span className="text-[10px] font-bold text-rose-600 bg-white px-2 py-0.5 rounded-full shadow-sm mt-1">
                   {stat.freqLast20}x
                 </span>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* --- CARTÃO FRIAS (CONGELADAS) --- */}
-      <div className="bg-white p-8 rounded-[32px] shadow-sm border border-slate-100 relative overflow-hidden">
-        {/* Header Visual */}
-        <div className="flex items-center gap-3 mb-6 relative z-10">
-          <div className="p-3 bg-cyan-50 rounded-2xl text-cyan-500 shadow-sm border border-cyan-100">
-            <Snowflake size={28} strokeWidth={2.5} />
+            ))}
           </div>
-          <div>
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Números Frios</h3>
-            <p className="text-sm text-slate-400 font-medium">Os mais atrasados (não saem há mais tempo)</p>
+
+          {/* INSIGHT QUENTE */}
+          <div className="mt-auto bg-rose-50/50 p-3 rounded-lg border border-rose-100/50">
+            <p className="text-[11px] text-rose-800 leading-snug">
+              <b>Dica:</b> {mediaQuentes >= 3 ? "Tendência forte!" : "Tendência morna."} 
+              Números quentes costumam sair em "ondas". É estatisticamente seguro manter pelo menos <b>um</b> desses no seu volante.
+            </p>
           </div>
         </div>
 
-        {/* Lista Frias */}
-        <div className="space-y-3 relative z-10">
-          <div className="grid grid-cols-5 text-xs font-bold text-slate-300 uppercase tracking-widest mb-2 px-2">
-            <span className="col-span-1">Número</span>
-            <span className="col-span-3">Tempo de Atraso</span>
-            <span className="col-span-1 text-right">Jogos</span>
+        {/* --- LADO DIREITO: FRIAS --- */}
+        <div className="p-5 flex flex-col h-full">
+          <div className="flex items-center gap-2 mb-4">
+            <Snowflake className="text-cyan-500 fill-cyan-500" size={16} />
+            <span className="text-sm font-bold text-cyan-700">Mais Atrasadas</span>
           </div>
 
-          {topFrias.map((stat, i) => (
-            <div key={stat.num} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-cyan-200 hover:bg-cyan-50/30 transition-all group">
-              <div className="flex items-center gap-3 w-16">
-                 <span className="text-[10px] font-bold text-slate-300 w-4">#{i+1}</span>
-                 <span className="text-lg font-black text-slate-700">{String(stat.num).padStart(2, '0')}</span>
-              </div>
-              
-              {/* Barra de Progresso Inversa (Azul) */}
-              <div className="flex-1 mx-4 h-2 bg-slate-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyan-400 to-blue-600 shadow-[0_0_10px_rgba(6,182,212,0.5)]" 
-                  style={{ width: `${Math.min((stat.lag / 40) * 100, 100)}%` }} // Escala baseada em ~40 jogos de atraso max
-                />
-              </div>
-
-              <div className="w-16 text-right">
-                <span className="text-sm font-bold text-cyan-700 bg-cyan-100 px-2 py-1 rounded-lg border border-cyan-200 group-hover:bg-cyan-600 group-hover:text-white transition-colors">
-                  {stat.lag}
+          <div className="grid grid-cols-5 gap-2 mb-4">
+            {topFrias.map((stat) => (
+              <div key={stat.num} className="flex flex-col items-center p-2 rounded-xl bg-cyan-50 border border-cyan-100 transition-transform hover:scale-105">
+                <span className="text-lg font-black text-slate-700">{String(stat.num).padStart(2, '0')}</span>
+                <span className="text-[10px] font-bold text-cyan-600 bg-white px-2 py-0.5 rounded-full shadow-sm mt-1">
+                  {stat.lag}j
                 </span>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
 
+          {/* INSIGHT FRIO */}
+          <div className="mt-auto bg-cyan-50/50 p-3 rounded-lg border border-cyan-100/50">
+            <p className="text-[11px] text-cyan-800 leading-snug">
+              <b>Cuidado:</b> O maior atraso é de {maisAtrasada} jogos. 
+              Não tente "cercar" todos os atrasados. Escolha apenas <b>um</b> para tentar quebrar a banca.
+            </p>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };
