@@ -1117,93 +1117,90 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFF] text-slate-900 pb-20 font-sans">
+  <div className="min-h-screen bg-[#FDFDFF] text-slate-900 pb-20 font-sans">
 
-      {/* HEADER */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-xl rotate-3 shadow-lg shadow-indigo-200">
-              <Activity className="text-white w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">PrintFlow <span className="text-indigo-600">Analytics</span></h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega Sena Data Insights</p>
-            </div>
+    {/* HEADER */}
+    <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-indigo-600 p-2 rounded-xl rotate-3 shadow-lg shadow-indigo-200">
+            <Activity className="text-white w-6 h-6" />
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setFilterVirada(!filterVirada)}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
-                }`}
-            >
-              {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ VIRADA'}
-            </button>
-            <div className="h-8 w-[1px] bg-slate-100 mx-2" />
-            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">PrintFlow <span className="text-indigo-600">Analytics</span></h1>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega Sena Data Insights</p>
           </div>
         </div>
-      </header>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setFilterVirada(!filterVirada)}
+            className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
+              }`}
+          >
+            {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ VIRADA'}
+          </button>
+          <div className="h-8 w-[1px] bg-slate-100 mx-2" />
+          <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
+        </div>
+      </div>
+    </header>
 
-      {/* CONTEÚDO */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+    {/* CONTEÚDO */}
+    <main className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* INTRODUÇÃO */}
-        <div className="bg-indigo-900 rounded-3xl p-10 mb-12 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
-          <div className="absolute top-0 right-0 opacity-5 transform translate-x-12 -translate-y-12 pointer-events-none">
-            <Binary size={300} />
-          </div>
-          <div className="relative z-10 max-w-4xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-md border border-indigo-400/30">
-                <Sparkles size={24} className="text-amber-300" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-white">Quando seis números se encontram, a aleatoriedade muda de forma.</h2>
+      {/* INTRODUÇÃO */}
+      <div className="bg-indigo-900 rounded-3xl p-10 mb-12 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
+        <div className="absolute top-0 right-0 opacity-5 transform translate-x-12 -translate-y-12 pointer-events-none">
+          <Binary size={300} />
+        </div>
+        <div className="relative z-10 max-w-4xl">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-md border border-indigo-400/30">
+              <Sparkles size={24} className="text-amber-300" />
             </div>
-            <div className="space-y-4 text-indigo-50 text-lg leading-relaxed">
-              <p>Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.</p>
-              <p>O que esta análise investiga é outra coisa: <b>como os conjuntos de seis números se comportam ao longo do tempo.</b></p>
-                <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.</p>
-                  <p>Aqui, os dados não prometem prêmios.</p>
-                  <p>Eles oferecem contexto.</p>
-                
-            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-white">Quando seis números se encontram, a aleatoriedade muda de forma.</h2>
           </div>
+          <div className="space-y-4 text-indigo-50 text-lg leading-relaxed">
+            <p>Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.</p>
+            <p>O que esta análise investiga é outra coisa: <b>como os conjuntos de seis números se comportam ao longo do tempo.</b></p>
+            <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.</p>
+            <p>Aqui, os dados não prometem prêmios. Eles oferecem contexto.</p>
+          </div>
+        </div>
+      </div> {/* FECHAMENTO DA INTRODUÇÃO CORRIGIDO */}
 
+      {/* 1. SOMA & SIGMA */}
+      <ChartSoma data={stats.soma} />
 
-          {/* 1. SOMA & SIGMA */}
-          <ChartSoma data={stats.soma} />
+      {/* 2. PAR / ÍMPAR */}
+      <ChartParImpar data={stats.pares} probSegura={stats.probPares} />
 
-          {/* 2. PAR / ÍMPAR */}
-          <ChartParImpar data={stats.pares} probSegura={stats.probPares} />
+      {/* 3. PRIMOS E FIBONACCI */}
+      <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
 
-          {/* 3. PRIMOS E FIBONACCI */}
-          <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
+      {/* 4. LINHAS E COLUNAS  */}
+      <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
 
-          {/* 4. LINHAS E COLUNAS  */}
-          <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
+      {/* 4. QUADRANTES */}
+      <ChartQuadrantes dataAssinatura={stats.assinatura} />
 
-          {/* 4. QUADRANTES */}
-          <ChartQuadrantes dataAssinatura={stats.assinatura} />
+      {/* 5. TERMÔMETRO */}
+      <ChartTermometro data={stats.termometro} />
 
-          {/* 5. TERMÔMETRO */}
-          <ChartTermometro data={stats.termometro} />
+      {/* 7. CHECKLIST FINAL  */}
+      <ChecklistValidator />
 
-          {/* 7. CHECKLIST FINAL  */}
-          <ChecklistValidator />
+      {/* SIMULADOR */}
+      <BetSimulator termometroData={stats.termometro} />
 
-          {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
-          <BetSimulator termometroData={stats.termometro} />
+    </main> {/* FECHAMENTO DO MAIN CORRIGIDO */}
 
-
-      </main>
-
-      <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
-        <p className="text-sm text-slate-400">
-          Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by
-          <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
-        </p>
-      </footer>
-    </div>
-  );
+    <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
+      <p className="text-sm text-slate-400">
+        Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by
+        <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
+      </p>
+    </footer>
+  </div>
+);
 }
