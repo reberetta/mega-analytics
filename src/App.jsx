@@ -4,7 +4,7 @@ import {
   AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label // <--- ADICIONEI O LABEL AQUI
 } from 'recharts';
 import {
-  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, Snowflake
+  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2
 } from 'lucide-react';
 import rawData from './mega_sena_data.json';
 
@@ -51,7 +51,107 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
 );
 
 /** * =================================================================================
- * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO)
+ * [FECHAMENTO] CHECKLIST DE VALIDAÇÃO
+ * =================================================================================
+ */
+const ChecklistValidator = () => {
+  return (
+    <div className="bg-indigo-900 rounded-[40px] p-8 md:p-12 shadow-2xl shadow-indigo-200 mb-16 relative overflow-hidden text-white">
+      {/* Background Decorativo */}
+      <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none transform rotate-12">
+        <ClipboardCheck size={400} />
+      </div>
+
+      <div className="relative z-10">
+        <div className="flex items-center gap-4 mb-10 border-b border-indigo-700/50 pb-8">
+          <div className="p-4 bg-indigo-500 rounded-2xl shadow-lg shadow-indigo-900/50">
+            <ShieldCheck size={32} className="text-white" />
+          </div>
+          <div>
+            <h3 className="text-3xl font-black tracking-tight text-white">Checklist de Ouro</h3>
+            <p className="text-indigo-200 text-sm font-medium">Não registre seu jogo sem validar estes 3 pilares estatísticos.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* PILAR 1: SEGURANÇA MATEMÁTICA */}
+          <div className="bg-indigo-800/50 rounded-3xl p-6 border border-indigo-700 hover:bg-indigo-800 transition-colors">
+            <h4 className="text-lg font-bold text-amber-300 mb-4 flex items-center gap-2">
+              1. A Base Numérica
+            </h4>
+            <ul className="space-y-4">
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">Soma Total:</strong>
+                  Seus 6 números somados devem dar entre <b>143 e 223</b>. Fora disso é zebra.
+                </span>
+              </li>
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">Equilíbrio Par/Ímpar:</strong>
+                  Evite tudo Par ou tudo Ímpar. O ideal é <b>3 pares e 3 ímpares</b> (ou 4/2).
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* PILAR 2: ESTRUTURA DO VOLANTE */}
+          <div className="bg-indigo-800/50 rounded-3xl p-6 border border-indigo-700 hover:bg-indigo-800 transition-colors">
+            <h4 className="text-lg font-bold text-emerald-300 mb-4 flex items-center gap-2">
+              2. Distribuição Espacial
+            </h4>
+            <ul className="space-y-4">
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">O Vazio é Bom:</strong>
+                  Deixe <b>1 ou 2 linhas</b> inteiras vazias. Deixe <b>4 ou 5 colunas</b> inteiras vazias. Não espalhe demais.
+                </span>
+              </li>
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">Quadrantes (3-2-1-0):</strong>
+                  Escolha um quadrante para ter 3 números, outro para ter 2, um para ter 1 e <b>deixe um quadrante zerado</b>.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* PILAR 3: SINTONIA FINA (A Regra de Ouro) */}
+          <div className="bg-indigo-800/50 rounded-3xl p-6 border border-indigo-700 hover:bg-indigo-800 transition-colors">
+            <h4 className="text-lg font-bold text-rose-300 mb-4 flex items-center gap-2">
+              3. O Toque Final
+            </h4>
+            <ul className="space-y-4">
+              <li className="flex gap-3 items-start">
+                <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-100 leading-snug">
+                  <strong className="text-white block">Primos e Fibonacci:</strong>
+                  Tenha no máximo <b>2 primos</b> e no máximo <b>1 fibonacci</b>. Menos é mais aqui.
+                </span>
+              </li>
+              <li className="flex gap-3 items-start bg-indigo-900/60 p-3 rounded-xl border border-indigo-600/50 -mx-2">
+                <CheckCircle2 className="text-rose-400 shrink-0 mt-0.5" size={18} />
+                <span className="text-sm text-indigo-50 leading-snug">
+                  <strong className="text-rose-300 block mb-1">Regra de Ouro (Quentes/Frios):</strong>
+                  Use <b>no máximo 1 número quente</b> (pra surfar a onda) e <b>no máximo 1 número frio</b> (pra tentar a quebra). O resto do jogo deve ser de números neutros.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/** * =================================================================================
+ * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO) - CURVA COMPLETA
  * =================================================================================
  */
 const ChartSoma = ({ data }) => {
@@ -62,8 +162,13 @@ const ChartSoma = ({ data }) => {
   const SIGMA_2_MIN = 103;
   const SIGMA_2_MAX = 263;
 
+  // Limites visuais para o gráfico não cortar (deixa a curva "morrer" no eixo)
+  const VIEW_MIN = 40;
+  const VIEW_MAX = 326;
+
   // Ticks para forçar o Eixo X a mostrar exatamente esses números
-  const boundaryTicks = [SIGMA_2_MIN, SIGMA_1_MIN, MEDIA, SIGMA_1_MAX, SIGMA_2_MAX];
+  // Adicionei os limites visuais para o eixo ficar completo
+  const boundaryTicks = [VIEW_MIN, SIGMA_2_MIN, SIGMA_1_MIN, MEDIA, SIGMA_1_MAX, SIGMA_2_MAX, VIEW_MAX];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 border-b border-slate-100 pb-16">
@@ -90,11 +195,12 @@ const ChartSoma = ({ data }) => {
               <p className="text-[10px] text-slate-400">Entre {SIGMA_2_MIN}-{SIGMA_1_MIN} e {SIGMA_1_MAX}-{SIGMA_2_MAX}</p>
             </div>
           </div>
+          {/* Legenda ajustada para Neutro/Risco */}
           <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded bg-rose-500/20 border border-rose-500"></div>
+            <div className="w-4 h-4 rounded bg-slate-100 border border-slate-300"></div>
             <div>
-              <span className="text-xs font-bold text-slate-700">Zona de Risco (2.1%)</span>
-              <p className="text-[10px] text-slate-400">Abaixo de {SIGMA_2_MIN} ou acima de {SIGMA_2_MAX}</p>
+              <span className="text-xs font-bold text-slate-700">Extremos (2.1%)</span>
+              <p className="text-[10px] text-slate-400">Zebras estatísticas (Muito raro)</p>
             </div>
           </div>
         </div>
@@ -112,13 +218,13 @@ const ChartSoma = ({ data }) => {
 
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
 
-            {/* Eixo X configurado para mostrar os limites exatos */}
+            {/* Eixo X: Usamos 'type="number"' e definimos o domain manualmente para expandir a visão */}
             <XAxis
               dataKey="name"
               type="number"
-              domain={['dataMin', 'dataMax']}
+              domain={[VIEW_MIN, VIEW_MAX]}
               ticks={boundaryTicks}
-              tick={{ fontSize: 11, fontWeight: 'bold', fill: '#64748b' }}
+              tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }}
               tickFormatter={(val) => val}
               interval={0}
             />
@@ -127,29 +233,30 @@ const ChartSoma = ({ data }) => {
 
             {/* --- ÁREAS DE FUNDO COLORIDAS (ZONAS) --- */}
 
-            {/* 1. ZONA EXTREMA (Esquerda) - Risco */}
-            <ReferenceArea x1={0} x2={SIGMA_2_MIN} fill="#f43f5e" fillOpacity={0.08}>
-              <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10} />
+            {/* 1. ZONA EXTREMA (Esquerda) - NEUTRA AGORA */}
+            {/* Removi o fill color para ficar transparente, mantendo apenas o Label discreto  */}
+            <ReferenceArea x1={VIEW_MIN} x2={SIGMA_2_MIN} fill="transparent">
+              <Label value="2.1%" position="insideBottom" fill="#cbd5e1" fontSize={12} fontWeight="bold" offset={10} />
             </ReferenceArea>
 
-            {/* 2. ZONA INTERMEDIÁRIA (Esquerda) - Alerta */}
+            {/* 2. ZONA INTERMEDIÁRIA (Esquerda) - Alerta (AMARELO) */}
             <ReferenceArea x1={SIGMA_2_MIN} x2={SIGMA_1_MIN} fill="#f59e0b" fillOpacity={0.12}>
               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold" />
             </ReferenceArea>
 
-            {/* 3. ZONA CENTRAL (Média) - Segura */}
+            {/* 3. ZONA CENTRAL (Média) - Segura (VERDE) */}
             <ReferenceArea x1={SIGMA_1_MIN} x2={SIGMA_1_MAX} fill="#10b981" fillOpacity={0.15}>
               <Label value="68.2%" position="top" fill="#059669" fontSize={16} fontWeight="900" dy={20} />
             </ReferenceArea>
 
-            {/* 4. ZONA INTERMEDIÁRIA (Direita) - Alerta */}
+            {/* 4. ZONA INTERMEDIÁRIA (Direita) - Alerta (AMARELO) */}
             <ReferenceArea x1={SIGMA_1_MAX} x2={SIGMA_2_MAX} fill="#f59e0b" fillOpacity={0.12}>
               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold" />
             </ReferenceArea>
 
-            {/* 5. ZONA EXTREMA (Direita) - Risco */}
-            <ReferenceArea x1={SIGMA_2_MAX} x2={400} fill="#f43f5e" fillOpacity={0.08}>
-              <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10} />
+            {/* 5. ZONA EXTREMA (Direita) - NEUTRA AGORA */}
+            <ReferenceArea x1={SIGMA_2_MAX} x2={VIEW_MAX} fill="transparent">
+              <Label value="2.1%" position="insideBottom" fill="#cbd5e1" fontSize={12} fontWeight="bold" offset={10} />
             </ReferenceArea>
 
             {/* Linhas verticais para marcar os limites exatos */}
@@ -326,9 +433,8 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
     </div>
   );
 };
-
 /** * =================================================================================
- * [GRÁFICO 4] QUADRANTES COM VOLANTE
+ * [GRÁFICO 4] QUADRANTES COM VOLANTE - VISUAL EXPANDIDO
  * =================================================================================
  */
 const ChartQuadrantes = ({ dataAssinatura }) => {
@@ -338,11 +444,26 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
       if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
       return (n % 10 >= 1 && n % 10 <= 5) ? 3 : 4;
     };
-    const colors = { 1: 'bg-indigo-500', 2: 'bg-pink-500', 3: 'bg-emerald-500', 4: 'bg-slate-500' };
+
+    // Cores vibrantes para contrastar com o fundo escuro
+    const colors = {
+      1: 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]',
+      2: 'bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]',
+      3: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]',
+      4: 'bg-slate-600' // Q4 geralmente é o "ignorado", deixei mais sóbrio
+    };
+
     return (
-      <div className="grid grid-cols-10 gap-1 p-4 bg-slate-800 rounded-xl mt-4 w-full max-w-sm mx-auto">
+      // AQUI MUDOU: max-w-lg (maior), gap-2 (mais espaçado)
+      <div className="grid grid-cols-10 gap-2 p-6 bg-slate-800/50 rounded-2xl mt-4 w-full max-w-lg mx-auto border border-slate-700/50 backdrop-blur-sm">
         {Array.from({ length: 60 }, (_, i) => i + 1).map(num => (
-          <div key={num} className={`aspect-square rounded-[2px] flex items-center justify-center text-[7px] font-bold text-white/90 ${colors[getQuad(num)]}`}>{num}</div>
+          <div
+            key={num}
+            // AQUI MUDOU: texto maior, arredondamento mais suave
+            className={`aspect-square rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-white transition-transform hover:scale-110 ${colors[getQuad(num)]}`}
+          >
+            {num}
+          </div>
         ))}
       </div>
     );
@@ -351,35 +472,48 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
   return (
     <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 mb-16">
       <div className="flex flex-col lg:flex-row gap-12">
-        <div className="lg:w-1/3">
-          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">O Caos <br /><span className="text-indigo-600">Dominante</span></h3>
-          <p className="text-slate-500 mb-6 leading-relaxed text-sm">
+
+        {/* Lado Esquerdo: Texto e Barras */}
+        <div className="lg:w-1/3 flex flex-col justify-center">
+          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">
+            O Caos <br /><span className="text-indigo-600">Dominante</span>
+          </h3>
+          <p className="text-slate-500 mb-8 leading-relaxed text-sm">
             Nossa intuição busca equilíbrio (2-2-1-1), mas os dados mostram que o padrão <b>3-2-1-0</b> é o campeão.
             Isso prova que <b>deixar um quadrante vazio</b> não é erro, é probabilidade.
           </p>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {dataAssinatura.map((item, i) => (
               <div key={i} className="flex items-center justify-between group">
                 <span className="text-xs font-bold text-slate-600 w-16">{item.name}</span>
-                <div className="flex-1 mx-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex-1 mx-3 h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all" style={{ width: `${item.percent}%` }} />
                 </div>
-                <span className="text-xs font-black text-indigo-600 w-8 text-right">{item.percent}%</span>
+                <span className="text-xs font-black text-indigo-600 w-10 text-right">{item.percent}%</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="lg:w-2/3 bg-slate-900 rounded-3xl p-8 text-white flex flex-col items-center">
-          <div className="flex gap-4 mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-indigo-500 rounded-full"></div> Q1</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-pink-500 rounded-full"></div> Q2</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div> Q3</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-slate-500 rounded-full"></div> Q4</span>
+
+        {/* Lado Direito: O Volante (Agora preenchendo bem) */}
+        <div className="lg:w-2/3 bg-slate-900 rounded-[32px] p-8 text-white flex flex-col items-center justify-center relative overflow-hidden">
+          {/* Efeito de fundo sutil para não ficar chapado */}
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/10 via-slate-900 to-slate-900 pointer-events-none"></div>
+
+          <div className="relative z-10 w-full flex flex-col items-center">
+            <div className="flex flex-wrap justify-center gap-4 mb-6 text-xs font-bold uppercase tracking-widest text-slate-400">
+              <span className="flex items-center gap-2"><div className="w-2 h-2 bg-indigo-500 rounded-full shadow-[0_0_8px_#6366f1]"></div> Q1</span>
+              <span className="flex items-center gap-2"><div className="w-2 h-2 bg-pink-500 rounded-full shadow-[0_0_8px_#ec4899]"></div> Q2</span>
+              <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]"></div> Q3</span>
+              <span className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-500 rounded-full"></div> Q4</span>
+            </div>
+
+            {renderMiniVolante()}
+
+            <p className="text-center text-xs text-slate-500 mt-8 max-w-lg leading-relaxed">
+              Visualização espacial dos 60 números. Note como é comum concentrar muitos pontos em uma cor (quadrante) e ignorar totalmente outra.
+            </p>
           </div>
-          {renderMiniVolante()}
-          <p className="text-center text-[10px] text-slate-500 mt-6 max-w-md">
-            O volante acima mostra como os 60 números são divididos. É comum concentrar muitos pontos em uma cor e ignorar outra.
-          </p>
         </div>
       </div>
     </div>
@@ -493,7 +627,7 @@ const ChartTermometro = ({ data }) => {
 
   return (
     <div className="bg-white rounded-[24px] shadow-sm border border-slate-100 mb-10 overflow-hidden">
-      
+
       {/* HEADER COMPACTO */}
       <div className="bg-slate-50/50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -506,7 +640,7 @@ const ChartTermometro = ({ data }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-        
+
         {/* --- LADO ESQUERDO: QUENTES --- */}
         <div className="p-5 flex flex-col h-full">
           <div className="flex items-center gap-2 mb-4">
@@ -528,7 +662,7 @@ const ChartTermometro = ({ data }) => {
           {/* INSIGHT QUENTE */}
           <div className="mt-auto bg-rose-50/50 p-3 rounded-lg border border-rose-100/50">
             <p className="text-[11px] text-rose-800 leading-snug">
-              <b>Dica:</b> {mediaQuentes >= 3 ? "Tendência forte!" : "Tendência morna."} 
+              <b>Dica:</b> {mediaQuentes >= 3 ? "Tendência forte!" : "Tendência morna."}
               Números quentes costumam sair em "ondas". É estatisticamente seguro manter pelo menos <b>um</b> desses no seu volante.
             </p>
           </div>
@@ -555,7 +689,7 @@ const ChartTermometro = ({ data }) => {
           {/* INSIGHT FRIO */}
           <div className="mt-auto bg-cyan-50/50 p-3 rounded-lg border border-cyan-100/50">
             <p className="text-[11px] text-cyan-800 leading-snug">
-              <b>Cuidado:</b> O maior atraso é de {maisAtrasada} jogos. 
+              <b>Cuidado:</b> O maior atraso é de {maisAtrasada} jogos.
               Não tente "cercar" todos os atrasados. Escolha apenas <b>um</b> para tentar quebrar a banca.
             </p>
           </div>
@@ -583,19 +717,19 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     // Verificação de segurança
     if (!filteredData || filteredData.length === 0) {
-        return { soma: [], primos: [], fib: [], assinatura: [], pares: [], lines: [], cols: [], termometro: [], probPares: 0, total: 0 };
+      return { soma: [], primos: [], fib: [], assinatura: [], pares: [], lines: [], cols: [], termometro: [], probPares: 0, total: 0 };
     }
 
     const total = filteredData.length;
-    
+
     // Acumuladores básicos
-    const distSoma = {}; 
+    const distSoma = {};
     const distPrimos = {};
     const distFib = {};
     const distAssinatura = {};
     const distLines = {};
     const distCols = {};
-    const distPares = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
+    const distPares = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
 
     // --- 1. Loop Principal (Estatísticas Gerais) ---
     filteredData.forEach(g => {
@@ -616,37 +750,37 @@ export default function Dashboard() {
 
     // --- 2. Lógica de QUENTES e FRIAS (CORRIGIDA) ---
     const numbersStats = Array.from({ length: 60 }, (_, i) => {
-        const num = i + 1;
-        return { num, freqLast20: 0, lag: 0 };
+      const num = i + 1;
+      return { num, freqLast20: 0, lag: 0 };
     });
 
     // A. Frequência (Últimos 20 Jogos)
-    const last20Games = filteredData.slice(0, 20); 
+    const last20Games = filteredData.slice(0, 20);
     last20Games.forEach(g => {
-        g.dezenas.forEach(d => {
-            // Conversão forçada para garantir que "01" conte como 1
-            if (Number(d) >= 1 && Number(d) <= 60) {
-                numbersStats[Number(d)-1].freqLast20++;
-            }
-        });
+      g.dezenas.forEach(d => {
+        // Conversão forçada para garantir que "01" conte como 1
+        if (Number(d) >= 1 && Number(d) <= 60) {
+          numbersStats[Number(d) - 1].freqLast20++;
+        }
+      });
     });
 
     // B. Cálculo do Atraso (Lag) - CORREÇÃO DE TIPO
     numbersStats.forEach(stat => {
-        // Encontra o índice do jogo mais recente que contém o número
-        const lastIndex = filteredData.findIndex(g => {
-            // Converte as dezenas do jogo para números antes de verificar
-            const numerosDoJogo = g.dezenas.map(d => Number(d));
-            return numerosDoJogo.includes(stat.num);
-        });
+      // Encontra o índice do jogo mais recente que contém o número
+      const lastIndex = filteredData.findIndex(g => {
+        // Converte as dezenas do jogo para números antes de verificar
+        const numerosDoJogo = g.dezenas.map(d => Number(d));
+        return numerosDoJogo.includes(stat.num);
+      });
 
-        // Se lastIndex é 0, saiu no último jogo (Atraso 0). 
-        // Se lastIndex é -1 (nunca saiu na lista carregada), definimos como o total.
-        stat.lag = lastIndex === -1 ? total : lastIndex;
+      // Se lastIndex é 0, saiu no último jogo (Atraso 0). 
+      // Se lastIndex é -1 (nunca saiu na lista carregada), definimos como o total.
+      stat.lag = lastIndex === -1 ? total : lastIndex;
     });
 
-    const format = (obj) => Object.entries(obj).map(([name, value]) => ({ 
-      name, value, percent: ((value / total) * 100).toFixed(1) 
+    const format = (obj) => Object.entries(obj).map(([name, value]) => ({
+      name, value, percent: ((value / total) * 100).toFixed(1)
     })).sort((a, b) => Number(a.name) - Number(b.name));
 
     const totalSeguro = (distPares[2] || 0) + (distPares[3] || 0) + (distPares[4] || 0);
@@ -656,7 +790,7 @@ export default function Dashboard() {
       soma: format(distSoma),
       primos: format(distPrimos),
       fib: format(distFib),
-      assinatura: format(distAssinatura).sort((a,b) => b.value - a.value).slice(0, 5),
+      assinatura: format(distAssinatura).sort((a, b) => b.value - a.value).slice(0, 5),
       pares: format(distPares),
       lines: format(distLines),
       cols: format(distCols),
@@ -730,14 +864,17 @@ export default function Dashboard() {
         {/* 3. PRIMOS E FIBONACCI */}
         <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
 
-        {/* 4. LINHAS E COLUNAS (NOVO) */}
+        {/* 4. LINHAS E COLUNAS  */}
         <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
-
-        {/* 5. TERMÔMETRO (NOVO) */}
-        <ChartTermometro data={stats.termometro} />
 
         {/* 4. QUADRANTES */}
         <ChartQuadrantes dataAssinatura={stats.assinatura} />
+
+        {/* 5. TERMÔMETRO */}
+        <ChartTermometro data={stats.termometro} />
+
+        {/* 7. CHECKLIST FINAL  */}
+        <ChecklistValidator />
 
       </main>
 
