@@ -1,15 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label // <--- ADICIONEI O LABEL AQUI
 } from 'recharts';
-import { 
-  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma 
+import {
+  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid
 } from 'lucide-react';
-
-// Certifique-se que este arquivo existe e tem dados. 
-// Se estiver vazio, a tela pode quebrar também.
-import rawData from './mega_sena_data.json'; 
+import rawData from './mega_sena_data.json';
 
 /** * =================================================================================
  * CONFIGURAÇÕES GERAIS
@@ -60,9 +57,9 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
 const ChartSoma = ({ data }) => {
   // Constantes Estatísticas da Mega Sena
   const MEDIA = 183;
-  const SIGMA_1_MIN = 143; 
+  const SIGMA_1_MIN = 143;
   const SIGMA_1_MAX = 223;
-  const SIGMA_2_MIN = 103; 
+  const SIGMA_2_MIN = 103;
   const SIGMA_2_MAX = 263;
 
   // Ticks para forçar o Eixo X a mostrar exatamente esses números
@@ -71,8 +68,8 @@ const ChartSoma = ({ data }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 border-b border-slate-100 pb-16">
       <div className="lg:col-span-1">
-        <SectionHeader 
-          title="A Curva Normal (Sigma)" 
+        <SectionHeader
+          title="A Curva Normal (Sigma)"
           subtitle="Visualize instantaneamente onde está a segurança matemática do jogo."
           icon={Sigma}
           colorClass="text-indigo-900"
@@ -108,20 +105,20 @@ const ChartSoma = ({ data }) => {
           <AreaChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
             <defs>
               <linearGradient id="colorSoma" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9} />
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            
+
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            
+
             {/* Eixo X configurado para mostrar os limites exatos */}
-            <XAxis 
-              dataKey="name" 
-              type="number" 
-              domain={['dataMin', 'dataMax']} 
+            <XAxis
+              dataKey="name"
+              type="number"
+              domain={['dataMin', 'dataMax']}
               ticks={boundaryTicks}
-              tick={{fontSize: 11, fontWeight: 'bold', fill: '#64748b'}} 
+              tick={{ fontSize: 11, fontWeight: 'bold', fill: '#64748b' }}
               tickFormatter={(val) => val}
               interval={0}
             />
@@ -129,30 +126,30 @@ const ChartSoma = ({ data }) => {
             <Tooltip content={<CustomTooltip prefix="Soma:" />} />
 
             {/* --- ÁREAS DE FUNDO COLORIDAS (ZONAS) --- */}
-            
+
             {/* 1. ZONA EXTREMA (Esquerda) - Risco */}
             <ReferenceArea x1={0} x2={SIGMA_2_MIN} fill="#f43f5e" fillOpacity={0.08}>
-               <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10}/>
+              <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10} />
             </ReferenceArea>
-            
+
             {/* 2. ZONA INTERMEDIÁRIA (Esquerda) - Alerta */}
             <ReferenceArea x1={SIGMA_2_MIN} x2={SIGMA_1_MIN} fill="#f59e0b" fillOpacity={0.12}>
-               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold"/>
+              <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold" />
             </ReferenceArea>
 
             {/* 3. ZONA CENTRAL (Média) - Segura */}
             <ReferenceArea x1={SIGMA_1_MIN} x2={SIGMA_1_MAX} fill="#10b981" fillOpacity={0.15}>
-               <Label value="68.2%" position="top" fill="#059669" fontSize={16} fontWeight="900" dy={20}/>
+              <Label value="68.2%" position="top" fill="#059669" fontSize={16} fontWeight="900" dy={20} />
             </ReferenceArea>
 
             {/* 4. ZONA INTERMEDIÁRIA (Direita) - Alerta */}
             <ReferenceArea x1={SIGMA_1_MAX} x2={SIGMA_2_MAX} fill="#f59e0b" fillOpacity={0.12}>
-               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold"/>
+              <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold" />
             </ReferenceArea>
 
             {/* 5. ZONA EXTREMA (Direita) - Risco */}
             <ReferenceArea x1={SIGMA_2_MAX} x2={400} fill="#f43f5e" fillOpacity={0.08}>
-               <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10}/>
+              <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10} />
             </ReferenceArea>
 
             {/* Linhas verticais para marcar os limites exatos */}
@@ -163,12 +160,12 @@ const ChartSoma = ({ data }) => {
             <ReferenceLine x={SIGMA_2_MAX} stroke="#f59e0b" strokeDasharray="2 2" />
 
             {/* O Gráfico de Dados por cima de tudo */}
-            <Area 
-              type="monotone" 
-              dataKey="value" 
-              stroke="#6366f1" 
-              strokeWidth={3} 
-              fill="url(#colorSoma)" 
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke="#6366f1"
+              strokeWidth={3}
+              fill="url(#colorSoma)"
               animationDuration={1500}
             />
           </AreaChart>
@@ -187,10 +184,10 @@ const ChartParImpar = ({ data, probSegura }) => {
     <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 mb-16">
       <div className="flex flex-col lg:flex-row gap-12 items-center">
         <div className="lg:w-1/3">
-          <SectionHeader 
-            title="Equilíbrio Par/Ímpar" 
+          <SectionHeader
+            title="Equilíbrio Par/Ímpar"
             subtitle="A batalha entre Pares e Ímpares quase sempre termina em empate técnico."
-            icon={Hash} 
+            icon={Hash}
           />
           <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mt-4">
             <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Zona de Segurança</p>
@@ -210,14 +207,14 @@ const ChartParImpar = ({ data, probSegura }) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="name" 
-                tick={{fontSize: 12}} 
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12 }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(val) => `${val}P / ${6-val}Í`} 
+                tickFormatter={(val) => `${val}P / ${6 - val}Í`}
               />
-              <Tooltip cursor={{fill: 'transparent'}} content={<CustomTooltip prefix="Configuração:" />} />
+              <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip prefix="Configuração:" />} />
               <Bar dataKey="value" radius={[8, 8, 8, 8]} barSize={40}>
                 {data.map((entry, index) => {
                   const n = Number(entry.name);
@@ -245,40 +242,40 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
-            <Binary size={24}/>
+            <Binary size={24} />
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-800">Primos</h3>
-            <p className="text-sm text-slate-400">Quantidade ideal por jogo</p>
+            <p className="text-sm text-slate-400">Valores: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59.</p>
           </div>
         </div>
-        
+
         <div className="w-full h-64 mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataPrimos} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="name" 
-                tick={{fontSize: 12, fill: '#64748b'}} 
-                axisLine={false} 
-                tickLine={false} 
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
               />
-              <Tooltip 
-                cursor={{fill: '#f8fafc'}} 
-                content={<CustomTooltip prefix="Qtd Primos:" />} 
+              <Tooltip
+                cursor={{ fill: '#f8fafc' }}
+                content={<CustomTooltip prefix="Qtd Primos:" />}
               />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                 {dataPrimos.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={(entry.name === "1" || entry.name === "2") ? COLORS.warning : "#cbd5e1"} 
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={(entry.name === "1" || entry.name === "2") ? COLORS.warning : "#cbd5e1"}
                   />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        
+
         <p className="text-xs text-amber-800 mt-6 bg-amber-50 p-3 rounded-lg border border-amber-100">
           <b>Insight:</b> 66% dos resultados têm apenas <b>1 ou 2 primos</b>.
         </p>
@@ -288,7 +285,7 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
-            <Flame size={24}/>
+            <Flame size={24} />
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-800">Fibonacci</h3>
@@ -300,21 +297,21 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataFib} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis 
-                dataKey="name" 
-                tick={{fontSize: 12, fill: '#64748b'}} 
-                axisLine={false} 
-                tickLine={false} 
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
               />
-              <Tooltip 
-                cursor={{fill: '#f8fafc'}} 
-                content={<CustomTooltip prefix="Qtd Fibonacci:" />} 
+              <Tooltip
+                cursor={{ fill: '#f8fafc' }}
+                content={<CustomTooltip prefix="Qtd Fibonacci:" />}
               />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                 {dataFib.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={(entry.name === "0" || entry.name === "1") ? COLORS.accent : "#cbd5e1"} 
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={(entry.name === "0" || entry.name === "1") ? COLORS.accent : "#cbd5e1"}
                   />
                 ))}
               </Bar>
@@ -337,9 +334,9 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
 const ChartQuadrantes = ({ dataAssinatura }) => {
   const renderMiniVolante = () => {
     const getQuad = (n) => {
-       if (n % 10 === 0) return n <= 30 ? 2 : 4; 
-       if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
-       return (n % 10 >= 1 && n % 10 <= 5) ? 3 : 4;
+      if (n % 10 === 0) return n <= 30 ? 2 : 4;
+      if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
+      return (n % 10 >= 1 && n % 10 <= 5) ? 3 : 4;
     };
     const colors = { 1: 'bg-indigo-500', 2: 'bg-pink-500', 3: 'bg-emerald-500', 4: 'bg-slate-500' };
     return (
@@ -355,7 +352,7 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
     <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 mb-16">
       <div className="flex flex-col lg:flex-row gap-12">
         <div className="lg:w-1/3">
-          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">O Caos <br/><span className="text-indigo-600">Dominante</span></h3>
+          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">O Caos <br /><span className="text-indigo-600">Dominante</span></h3>
           <p className="text-slate-500 mb-6 leading-relaxed text-sm">
             Nossa intuição busca equilíbrio (2-2-1-1), mas os dados mostram que o padrão <b>3-2-1-0</b> é o campeão.
             Isso prova que <b>deixar um quadrante vazio</b> não é erro, é probabilidade.
@@ -365,7 +362,7 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
               <div key={i} className="flex items-center justify-between group">
                 <span className="text-xs font-bold text-slate-600 w-16">{item.name}</span>
                 <div className="flex-1 mx-2 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-500 transition-all" style={{width: `${item.percent}%`}} />
+                  <div className="h-full bg-indigo-500 transition-all" style={{ width: `${item.percent}%` }} />
                 </div>
                 <span className="text-xs font-black text-indigo-600 w-8 text-right">{item.percent}%</span>
               </div>
@@ -390,6 +387,98 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
 };
 
 /** * =================================================================================
+ * [GRÁFICO 5] LINHAS E COLUNAS VAZIAS (NOVO)
+ * =================================================================================
+ */
+const ChartLinhasColunas = ({ dataLines, dataCols }) => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16 border-b border-slate-100 pb-16">
+
+      {/* --- LINHAS VAZIAS --- */}
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
+            <LayoutGrid size={24} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-800">Linhas Vazias</h3>
+            <p className="text-sm text-slate-400">Quantas linhas ficaram sem nenhum número?</p>
+          </div>
+        </div>
+
+        <div className="w-full h-64 mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={dataLines} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(val) => `${val} Vazias`}
+              />
+              <Tooltip cursor={{ fill: '#f8fafc' }} content={<CustomTooltip prefix="Linhas Vazias:" />} />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                {dataLines.map((entry, index) => {
+                  // O padrão ouro é 1 ou 2 linhas vazias
+                  const isSafe = entry.name === "1" || entry.name === "2";
+                  return <Cell key={`cell-${index}`} fill={isSafe ? COLORS.primary : "#cbd5e1"} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <p className="text-xs text-indigo-800 mt-6 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+          <b>Insight:</b> É matematicamente difícil preencher todas as linhas. O normal é ter <b>1 ou 2 linhas totalmente vazias</b>.
+        </p>
+      </div>
+
+      {/* --- COLUNAS VAZIAS --- */}
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-pink-50 rounded-2xl text-pink-600">
+            <Grid3X3 size={24} />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-slate-800">Colunas Vazias</h3>
+            <p className="text-sm text-slate-400">Das 10 colunas, quantas não foram usadas?</p>
+          </div>
+        </div>
+
+        <div className="w-full h-64 mt-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={dataCols} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: '#64748b' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(val) => `${val} Vazias`}
+              />
+              <Tooltip cursor={{ fill: '#f8fafc' }} content={<CustomTooltip prefix="Colunas Vazias:" />} />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                {dataCols.map((entry, index) => {
+                  // O padrão ouro é 4 ou 5 colunas vazias
+                  const isSafe = entry.name === "4" || entry.name === "5";
+                  return <Cell key={`cell-${index}`} fill={isSafe ? COLORS.secondary : "#cbd5e1"} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <p className="text-xs text-pink-800 mt-6 bg-pink-50 p-3 rounded-lg border border-pink-100">
+          <b>Insight:</b> Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>.
+        </p>
+      </div>
+
+    </div>
+  );
+};
+
+/** * =================================================================================
  * [MAIN] DASHBOARD PRINCIPAL
  * =================================================================================
  */
@@ -404,9 +493,8 @@ export default function Dashboard() {
 
   // --- ENGINE DE CÁLCULOS ---
   const stats = useMemo(() => {
-    // Evita crash se os dados estiverem vazios
     if (!filteredData || filteredData.length === 0) {
-        return { soma: [], primos: [], fib: [], assinatura: [], pares: [], probPares: 0, total: 0 };
+      return { soma: [], primos: [], fib: [], assinatura: [], pares: [], lines: [], cols: [], probPares: 0, total: 0 };
     }
 
     const total = filteredData.length;
@@ -414,23 +502,36 @@ export default function Dashboard() {
     const distPrimos = {};
     const distFib = {};
     const distAssinatura = {};
-    const distPares = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 }; // Inicializa zerado para garantir ordem
+    const distPares = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+    // NOVOS ACUMULADORES
+    const distLines = {};
+    const distCols = {};
 
     filteredData.forEach(g => {
       // 1. Soma
       const bSoma = Math.floor(g.analises.soma / 10) * 10;
       distSoma[bSoma] = (distSoma[bSoma] || 0) + 1;
-      // 2. Primos/Fib/Assinatura
+
+      // 2. Primos/Fib/Assinatura (Usando seus dados prontos)
       distPrimos[g.analises.primos] = (distPrimos[g.analises.primos] || 0) + 1;
       distFib[g.analises.fibonacci] = (distFib[g.analises.fibonacci] || 0) + 1;
       distAssinatura[g.analises.quadrantes.assinatura] = (distAssinatura[g.analises.quadrantes.assinatura] || 0) + 1;
-      // 3. Pares (Para o Histograma)
+
+      // 3. Pares
       const p = g.analises.pares;
       if (distPares[p] !== undefined) distPares[p]++;
+
+      // 4. LINHAS E COLUNAS (LENDO DIRETO DO JSON)
+      const lv = g.analises.linhas_vazias;
+      distLines[lv] = (distLines[lv] || 0) + 1;
+
+      const cv = g.analises.colunas_vazias;
+      distCols[cv] = (distCols[cv] || 0) + 1;
     });
 
-    const format = (obj) => Object.entries(obj).map(([name, value]) => ({ 
-      name, value, percent: ((value / total) * 100).toFixed(1) 
+    const format = (obj) => Object.entries(obj).map(([name, value]) => ({
+      name, value, percent: ((value / total) * 100).toFixed(1)
     })).sort((a, b) => Number(a.name) - Number(b.name));
 
     // Cálculo Probabilidade Pares (2, 3 ou 4)
@@ -441,20 +542,22 @@ export default function Dashboard() {
       soma: format(distSoma),
       primos: format(distPrimos),
       fib: format(distFib),
-      assinatura: format(distAssinatura).sort((a,b) => b.value - a.value).slice(0, 5),
+      assinatura: format(distAssinatura).sort((a, b) => b.value - a.value).slice(0, 5),
       pares: format(distPares),
+      lines: format(distLines), // <--- Retorna processado
+      cols: format(distCols),   // <--- Retorna processado
       probPares,
       total
     };
   }, [filteredData]);
 
   if (!rawData || rawData.length === 0) {
-      return <div className="p-10 text-center text-red-500">Erro: Arquivo de dados vazio ou não encontrado.</div>;
+    return <div className="p-10 text-center text-red-500">Erro: Arquivo de dados vazio ou não encontrado.</div>;
   }
 
   return (
     <div className="min-h-screen bg-[#FDFDFF] text-slate-900 pb-20 font-sans">
-      
+
       {/* HEADER */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -468,11 +571,10 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setFilterVirada(!filterVirada)}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${
-                filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
-              }`}
+              className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
+                }`}
             >
               {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ VIRADA'}
             </button>
@@ -484,7 +586,7 @@ export default function Dashboard() {
 
       {/* CONTEÚDO */}
       <main className="max-w-7xl mx-auto px-6 py-10">
-        
+
         {/* INTRODUÇÃO */}
         <div className="bg-indigo-900 rounded-3xl p-10 mb-12 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
           <div className="absolute top-0 right-0 opacity-5 transform translate-x-12 -translate-y-12 pointer-events-none">
@@ -513,6 +615,9 @@ export default function Dashboard() {
         {/* 3. PRIMOS E FIBONACCI */}
         <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
 
+        {/* 4. LINHAS E COLUNAS (NOVO) */}
+        <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
+
         {/* 4. QUADRANTES */}
         <ChartQuadrantes dataAssinatura={stats.assinatura} />
 
@@ -520,7 +625,7 @@ export default function Dashboard() {
 
       <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
         <p className="text-sm text-slate-400">
-          Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by 
+          Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by
           <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
         </p>
       </footer>
