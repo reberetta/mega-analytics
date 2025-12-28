@@ -374,8 +374,8 @@ const ChecklistValidator = () => {
               <li className="flex gap-3 items-start">
                 <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={18} />
                 <span className="text-sm text-indigo-100 leading-snug">
-                  <strong className="text-white block">Quadrantes (3-2-1-0):</strong>
-                  Escolha um quadrante para ter 3 números, outro para ter 2, um para ter 1 e <b>deixe um quadrante zerado</b>.
+                  <strong className="text-white block">Quadrantes (3-2-1-0 ou 2-2-1-1):</strong>
+                  Busque o padrão <b>3-2-1-0</b> (deixando um quadrante vazio) ou o <b>2-2-1-1</b> (espalhando com equilíbrio). Ambos são o "padrão ouro".
                 </span>
               </li>
             </ul>
@@ -1201,7 +1201,7 @@ export default function Dashboard() {
         <ChecklistValidator />
 
         {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
-        <BetSimulator termometroData={stats.termometro} />
+        {/* <BetSimulator termometroData={stats.termometro} /> */}
 
 
       </main>
