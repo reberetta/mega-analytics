@@ -1,10 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label // <--- ADICIONEI O LABEL AQUI
+  AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label 
 } from 'recharts';
 import {
-  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2
+  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, 
+  Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2, Calculator, Wand2, RefreshCcw,
+  Check, AlertTriangle, XCircle
 } from 'lucide-react';
 import rawData from './mega_sena_data.json';
 
@@ -49,6 +51,188 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
     <p className="text-slate-500 max-w-2xl mt-1 text-sm">{subtitle}</p>
   </div>
 );
+
+/** * =================================================================================
+ * [FERRAMENTA] SIMULADOR DE APOSTA
+ * =================================================================================
+ */
+const BetSimulator = ({ termometroData }) => {
+  const [bet, setBet] = useState(["", "", "", "", "", ""]);
+
+  // Helpers de Dados Estáticos
+  const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
+  const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55];
+
+  // Handler de Input
+  const handleInput = (val, index) => {
+    // Apenas números
+    if (val !== "" && (isNaN(val) || val < 1 || val > 60)) return;
+    
+    const newBet = [...bet];
+    newBet[index] = val;
+    setBet(newBet);
+  };
+
+  const clearBet = () => setBet(["", "", "", "", "", ""]);
+
+  // --- ENGINE DE ANÁLISE DA APOSTA ---
+  const analysis = useMemo(() => {
+    // Só analisa se tiver 6 números preenchidos
+    const nums = bet.map(n => parseInt(n)).filter(n => !isNaN(n));
+    if (nums.length < 6) return null;
+
+    // 1. Soma
+    const soma = nums.reduce((a, b) => a + b, 0);
+    let somaStatus = "risk";
+    if (soma >= 143 && soma <= 223) somaStatus = "safe";
+    else if (soma >= 103 && soma <= 263) somaStatus = "warning";
+
+    // 2. Pares
+    const pares = nums.filter(n => n % 2 === 0).length;
+    let parStatus = "risk";
+    if (pares >= 2 && pares <= 4) parStatus = "safe"; // 2, 3 ou 4 pares é o ideal
+
+    // 3. Primos
+    const qtdPrimos = nums.filter(n => PRIMOS.includes(n)).length;
+    let primoStatus = "risk";
+    if (qtdPrimos <= 2) primoStatus = "safe"; // Até 2 primos é safe
+    else if (qtdPrimos === 3) primoStatus = "warning";
+
+    // 4. Fibonacci
+    const qtdFib = nums.filter(n => FIBONACCI.includes(n)).length;
+    let fibStatus = "risk";
+    if (qtdFib <= 1) fibStatus = "safe";
+    else if (qtdFib === 2) fibStatus = "warning";
+
+    // 5. Hot/Cold (Cruzamento com dados do Termômetro)
+    // Precisamos achar estatísticas para esses números
+    const hotColdAnalysis = nums.map(n => {
+      const stat = termometroData.find(t => t.num === n);
+      if (!stat) return null;
+      if (stat.freqLast20 >= 3) return { type: 'hot', val: stat.freqLast20 };
+      if (stat.lag >= 15) return { type: 'cold', val: stat.lag };
+      return null;
+    }).filter(x => x !== null);
+
+    return { 
+      soma, somaStatus, 
+      pares, parStatus, 
+      qtdPrimos, primoStatus, 
+      qtdFib, fibStatus,
+      hotColdAnalysis 
+    };
+  }, [bet, termometroData]);
+
+  // Componente Visual de Status (Badge)
+  const StatusBadge = ({ status, labelSafe, labelRisk }) => {
+    if (status === "safe") return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full"><Check size={12}/> {labelSafe}</span>;
+    if (status === "warning") return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full"><AlertTriangle size={12}/> Atenção</span>;
+    return <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-1 rounded-full"><XCircle size={12}/> {labelRisk || "Risco"}</span>;
+  };
+
+  return (
+    <div className="bg-slate-900 rounded-[32px] p-8 mb-16 shadow-2xl shadow-slate-400/20 text-white relative overflow-hidden border border-slate-700">
+      
+      {/* Título */}
+      <div className="flex items-center justify-between mb-8 relative z-10">
+        <div className="flex items-center gap-3">
+          <div className="p-3 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/50">
+            <Calculator className="text-white" size={24} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-bold text-white">Simulador de Aposta</h3>
+            <p className="text-slate-400 text-sm">Valide seus números antes de jogar.</p>
+          </div>
+        </div>
+        <button onClick={clearBet} className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg transition-colors">
+          <RefreshCcw size={14}/> Limpar
+        </button>
+      </div>
+
+      {/* Inputs */}
+      <div className="grid grid-cols-6 gap-2 md:gap-4 mb-8 relative z-10 max-w-3xl mx-auto">
+        {bet.map((val, i) => (
+          <div key={i} className="relative group">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur opacity-20 group-focus-within:opacity-100 transition-opacity"></div>
+            <input 
+              type="number" 
+              value={val}
+              onChange={(e) => handleInput(e.target.value, i)}
+              className="relative w-full aspect-square bg-slate-800 border-2 border-slate-700 rounded-2xl text-center text-xl md:text-2xl font-black text-white focus:outline-none focus:border-indigo-400 transition-all placeholder-slate-700"
+              placeholder={(i+1).toString()}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Resultados da Análise */}
+      {analysis ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          
+          {/* Card SOMA */}
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+            <span className="text-xs text-slate-400 uppercase font-bold">Soma</span>
+            <div className="flex items-end gap-2 mt-1 mb-2">
+              <span className="text-2xl font-black text-white">{analysis.soma}</span>
+            </div>
+            <StatusBadge status={analysis.somaStatus} labelSafe="Dentro da média" labelRisk="Muito Extremo" />
+          </div>
+
+          {/* Card PARES */}
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+            <span className="text-xs text-slate-400 uppercase font-bold">Pares / Ímpares</span>
+            <div className="flex items-end gap-2 mt-1 mb-2">
+              <span className="text-2xl font-black text-white">{analysis.pares}P</span>
+              <span className="text-lg font-bold text-slate-500">/ {6 - analysis.pares}Í</span>
+            </div>
+            <StatusBadge status={analysis.parStatus} labelSafe="Equilibrado" labelRisk="Desbalanceado" />
+          </div>
+
+          {/* Card PRIMOS/FIB */}
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+            <span className="text-xs text-slate-400 uppercase font-bold">Primos & Fib</span>
+            <div className="flex flex-col gap-2 mt-2">
+               <div className="flex justify-between items-center">
+                 <span className="text-sm text-slate-300">{analysis.qtdPrimos} Primos</span>
+                 <StatusBadge status={analysis.primoStatus} labelSafe="OK" labelRisk="Excesso" />
+               </div>
+               <div className="flex justify-between items-center">
+                 <span className="text-sm text-slate-300">{analysis.qtdFib} Fibon.</span>
+                 <StatusBadge status={analysis.fibStatus} labelSafe="OK" labelRisk="Excesso" />
+               </div>
+            </div>
+          </div>
+
+          {/* Card TERMÔMETRO (Informativo) */}
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+            <span className="text-xs text-slate-400 uppercase font-bold">Temperatura</span>
+            <div className="mt-2 space-y-1">
+              {analysis.hotColdAnalysis.length === 0 ? (
+                 <span className="text-sm text-slate-500 italic">Nenhum destaque quente/frio. Jogo neutro.</span>
+              ) : (
+                analysis.hotColdAnalysis.map((hc, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-xs">
+                    {hc.type === 'hot' 
+                      ? <><Flame size={12} className="text-rose-500"/> <span className="text-rose-300">Quente ({hc.val}x)</span></>
+                      : <><Snowflake size={12} className="text-cyan-500"/> <span className="text-cyan-300">Frio ({hc.val}j)</span></>
+                    }
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+      ) : (
+        <div className="text-center py-8 bg-slate-800/30 rounded-2xl border border-slate-800 border-dashed">
+          <Wand2 className="mx-auto text-slate-600 mb-2" size={32} />
+          <p className="text-slate-500 text-sm">Preencha os 6 números acima para simular a qualidade estatística.</p>
+        </div>
+      )}
+
+    </div>
+  );
+};
 
 /** * =================================================================================
  * [FECHAMENTO] CHECKLIST DE VALIDAÇÃO
@@ -855,6 +1039,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* --- NOVO: SIMULADOR DE APOSTA --- */}
+        {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
+        <BetSimulator termometroData={stats.termometro} />
 
         {/* 1. SOMA & SIGMA */}
         <ChartSoma data={stats.soma} />
