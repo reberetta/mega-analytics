@@ -823,11 +823,11 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
             <div className="mt-8 grid grid-cols-2 gap-6 w-full max-w-lg border-t border-slate-800 pt-6">
                <div>
                   <h5 className="text-[10px] font-black uppercase text-indigo-400 mb-1">Linhas (L1-L6)</h5>
-                  <p className="text-[11px] text-slate-400 leading-tight">É matematicamente difícil preencher todas as linhas. O comum é ter <b>1 ou 2 linhas vazias</b>, o que significa que você naturalmente irá agrupar dois ou mais números na mesma "casa" (ex: dois números na casa dos 20).</p>
+                  <p className="text-[11px] text-slate-400 leading-tight">É estatisticamente normal ter de <b>1 a 2 linhas vazias</b> no seu jogo.</p>
                </div>
                <div>
                   <h5 className="text-[10px] font-black uppercase text-indigo-400 mb-1">Colunas (C1-C10)</h5>
-                  <p className="text-[11px] text-slate-400 leading-tight">Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>. Isso indica que repetir o <b>mesmo final</b> (ex: 14 e 44, ambos na coluna 4) é um comportamento padrão e saudável para o seu jogo.</b>.</p>
+                  <p className="text-[11px] text-slate-400 leading-tight">O padrão comum é ter entre <b>4 e 5 colunas sem nenhum número</b>.</p>
                </div>
             </div>
           </div>
@@ -880,7 +880,7 @@ const ChartLinhasColunas = ({ dataLines, dataCols }) => {
         </div>
 
         <p className="text-xs text-indigo-800 mt-6 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
-          <b>Insight:</b> É matematicamente difícil preencher todas as linhas. O normal é ter <b>1 ou 2 linhas totalmente vazias</b>.
+          <b>Insight:</b> É matematicamente difícil preencher todas as linhas. O comum é ter <b>1 ou 2 linhas vazias</b>, o que significa que você naturalmente irá agrupar dois ou mais números na mesma "casa" (ex: dois números na casa dos 20).
         </p>
       </div>
 
@@ -920,7 +920,7 @@ const ChartLinhasColunas = ({ dataLines, dataCols }) => {
         </div>
 
         <p className="text-xs text-pink-800 mt-6 bg-pink-50 p-3 rounded-lg border border-pink-100">
-          <b>Insight:</b> Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>.
+          <b>Insight:</b>Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>. Isso indica que repetir o mesmo final (ex: 14 e 44, ambos na coluna 4) é um comportamento padrão e saudável para o seu jogo.
         </p>
       </div>
 
@@ -1180,14 +1180,11 @@ export default function Dashboard() {
           {/* 3. PRIMOS E FIBONACCI */}
           <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
 
-
-          {/* 4. QUADRANTES */}
-          <ChartQuadrantes dataAssinatura={stats.assinatura} />
-          
           {/* 4. LINHAS E COLUNAS  */}
           <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
 
-
+          {/* 4. QUADRANTES */}
+          <ChartQuadrantes dataAssinatura={stats.assinatura} />
 
           {/* 5. TERMÔMETRO */}
           <ChartTermometro data={stats.termometro} />
