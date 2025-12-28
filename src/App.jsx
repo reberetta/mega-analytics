@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  AreaChart, Area, Cell, ReferenceLine, ReferenceArea 
+  AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label // <--- ADICIONEI O LABEL AQUI
 } from 'recharts';
 import { 
   Activity, Info, Flame, Binary, Sparkles, Hash, Sigma 
 } from 'lucide-react';
 
-import rawData from './mega_sena_data.json';
+// Certifique-se que este arquivo existe e tem dados. 
+// Se estiver vazio, a tela pode quebrar também.
+import rawData from './mega_sena_data.json'; 
 
 /** * =================================================================================
  * CONFIGURAÇÕES GERAIS
@@ -52,7 +54,7 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
 );
 
 /** * =================================================================================
- * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO) - ATUALIZADO
+ * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO)
  * =================================================================================
  */
 const ChartSoma = ({ data }) => {
@@ -233,7 +235,7 @@ const ChartParImpar = ({ data, probSegura }) => {
 };
 
 /** * =================================================================================
- * [GRÁFICO 3] PRIMOS E FIBONACCI - CORRIGIDO (Fix de Altura)
+ * [GRÁFICO 3] PRIMOS E FIBONACCI
  * =================================================================================
  */
 const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
@@ -251,7 +253,6 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
           </div>
         </div>
         
-        {/* CORREÇÃO: Removido flex-1 e forçado w-full h-64 (altura fixa de 16rem/256px) */}
         <div className="w-full h-64 mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataPrimos} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -295,7 +296,6 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
           </div>
         </div>
 
-        {/* CORREÇÃO: Altura fixa garantida */}
         <div className="w-full h-64 mt-2">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={dataFib} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -342,177 +342,3 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
        return (n % 10 >= 1 && n % 10 <= 5) ? 3 : 4;
     };
     const colors = { 1: 'bg-indigo-500', 2: 'bg-pink-500', 3: 'bg-emerald-500', 4: 'bg-slate-500' };
-    return (
-      <div className="grid grid-cols-10 gap-1 p-4 bg-slate-800 rounded-xl mt-4 w-full max-w-sm mx-auto">
-        {Array.from({ length: 60 }, (_, i) => i + 1).map(num => (
-          <div key={num} className={`aspect-square rounded-[2px] flex items-center justify-center text-[7px] font-bold text-white/90 ${colors[getQuad(num)]}`}>{num}</div>
-        ))}
-      </div>
-    );
-  };
-
-  return (
-    <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 mb-16">
-      <div className="flex flex-col lg:flex-row gap-12">
-        <div className="lg:w-1/3">
-          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">O Caos <br/><span className="text-indigo-600">Dominante</span></h3>
-          <p className="text-slate-500 mb-6 leading-relaxed text-sm">
-            Nossa intuição busca equilíbrio (2-2-1-1), mas os dados mostram que o padrão <b>3-2-1-0</b> é o campeão.
-            Isso prova que <b>deixar um quadrante vazio</b> não é erro, é probabilidade.
-          </p>
-          <div className="space-y-4">
-            {dataAssinatura.map((item, i) => (
-              <div key={i} className="flex items-center justify-between group">
-                <span className="text-xs font-bold text-slate-600 w-16">{item.name}</span>
-                <div className="flex-1 mx-2 h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-500 transition-all" style={{width: `${item.percent}%`}} />
-                </div>
-                <span className="text-xs font-black text-indigo-600 w-8 text-right">{item.percent}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="lg:w-2/3 bg-slate-900 rounded-3xl p-8 text-white flex flex-col items-center">
-          <div className="flex gap-4 mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-indigo-500 rounded-full"></div> Q1</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-pink-500 rounded-full"></div> Q2</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div> Q3</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-slate-500 rounded-full"></div> Q4</span>
-          </div>
-          {renderMiniVolante()}
-          <p className="text-center text-[10px] text-slate-500 mt-6 max-w-md">
-            O volante acima mostra como os 60 números são divididos. É comum concentrar muitos pontos em uma cor e ignorar outra.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/** * =================================================================================
- * [MAIN] DASHBOARD PRINCIPAL
- * =================================================================================
- */
-export default function Dashboard() {
-  const [filterVirada, setFilterVirada] = useState(false);
-
-  const filteredData = useMemo(() => {
-    return rawData.filter(game => filterVirada ? String(game.tipo).toUpperCase() === 'VIRADA' : true);
-  }, [filterVirada]);
-
-  // --- ENGINE DE CÁLCULOS ---
-  const stats = useMemo(() => {
-    const total = filteredData.length;
-    const distSoma = {};
-    const distPrimos = {};
-    const distFib = {};
-    const distAssinatura = {};
-    const distPares = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 }; // Inicializa zerado para garantir ordem
-
-    filteredData.forEach(g => {
-      // 1. Soma
-      const bSoma = Math.floor(g.analises.soma / 10) * 10;
-      distSoma[bSoma] = (distSoma[bSoma] || 0) + 1;
-      // 2. Primos/Fib/Assinatura
-      distPrimos[g.analises.primos] = (distPrimos[g.analises.primos] || 0) + 1;
-      distFib[g.analises.fibonacci] = (distFib[g.analises.fibonacci] || 0) + 1;
-      distAssinatura[g.analises.quadrantes.assinatura] = (distAssinatura[g.analises.quadrantes.assinatura] || 0) + 1;
-      // 3. Pares (Para o Histograma)
-      const p = g.analises.pares;
-      if (distPares[p] !== undefined) distPares[p]++;
-    });
-
-    const format = (obj) => Object.entries(obj).map(([name, value]) => ({ 
-      name, value, percent: ((value / total) * 100).toFixed(1) 
-    })).sort((a, b) => Number(a.name) - Number(b.name));
-
-    // Cálculo Probabilidade Pares (2, 3 ou 4)
-    const totalSeguro = (distPares[2] || 0) + (distPares[3] || 0) + (distPares[4] || 0);
-    const probPares = ((totalSeguro / total) * 100).toFixed(1);
-
-    return {
-      soma: format(distSoma),
-      primos: format(distPrimos),
-      fib: format(distFib),
-      assinatura: format(distAssinatura).sort((a,b) => b.value - a.value).slice(0, 5),
-      pares: format(distPares),
-      probPares,
-      total
-    };
-  }, [filteredData]);
-
-  return (
-    <div className="min-h-screen bg-[#FDFDFF] text-slate-900 pb-20 font-sans">
-      
-      {/* HEADER */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-600 p-2 rounded-xl rotate-3 shadow-lg shadow-indigo-200">
-              <Activity className="text-white w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">PrintFlow <span className="text-indigo-600">Analytics</span></h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega Sena Data Insights</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setFilterVirada(!filterVirada)}
-              className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${
-                filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
-              }`}
-            >
-              {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ VIRADA'}
-            </button>
-            <div className="h-8 w-[1px] bg-slate-100 mx-2" />
-            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
-          </div>
-        </div>
-      </header>
-
-      {/* CONTEÚDO */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
-        
-        {/* INTRODUÇÃO */}
-        <div className="bg-indigo-900 rounded-3xl p-10 mb-12 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
-          <div className="absolute top-0 right-0 opacity-5 transform translate-x-12 -translate-y-12 pointer-events-none">
-            <Binary size={300} />
-          </div>
-          <div className="relative z-10 max-w-4xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-md border border-indigo-400/30">
-                <Sparkles size={24} className="text-amber-300" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-white">O Padrão Oculto na Aleatoriedade</h2>
-            </div>
-            <div className="space-y-4 text-indigo-50 text-lg leading-relaxed">
-              <p>Muitos acreditam que a loteria é puramente sorte. Porém, quando olhamos para o <b>conjunto dos 6 números</b>, a história muda.</p>
-              <p>Analisamos <b>{stats.total} concursos</b>. Não tentamos adivinhar o futuro, mas sim ajudar você a montar jogos que respeitam a matemática, evitando combinações (zebras) que raramente acontecem.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 1. SOMA & SIGMA */}
-        <ChartSoma data={stats.soma} />
-
-        {/* 2. PAR / ÍMPAR */}
-        <ChartParImpar data={stats.pares} probSegura={stats.probPares} />
-
-        {/* 3. PRIMOS E FIBONACCI */}
-        <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
-
-        {/* 4. QUADRANTES */}
-        <ChartQuadrantes dataAssinatura={stats.assinatura} />
-
-      </main>
-
-      <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
-        <p className="text-sm text-slate-400">
-          Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by 
-          <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
-        </p>
-      </footer>
-    </div>
-  );
-}
