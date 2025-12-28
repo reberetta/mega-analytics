@@ -6,7 +6,7 @@ import {
 import {
   Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer,
   Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2, Calculator, Wand2, RefreshCcw, Trash2,
-  Check, AlertTriangle, XCircle
+  Check, AlertTriangle, XCircle, AlertCircle
 } from 'lucide-react';
 import rawData from './mega_sena_data.json';
 
