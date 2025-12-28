@@ -1142,7 +1142,7 @@ export default function Dashboard() {
               <Activity className="text-white w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">PrintFlow <span className="text-indigo-600">Analytics</span></h1>
+              <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">Reberetta <span className="text-indigo-600">Analytics</span></h1>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega Sena Data Insights</p>
             </div>
           </div>
@@ -1154,9 +1154,9 @@ export default function Dashboard() {
             >
               {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ JOGOS DA VIRADA'}
             </button> */}
-            <div className="h-8 w-[1px] bg-slate-100 mx-2" />
+            {/* <div className="h-8 w-[1px] bg-slate-100 mx-2" />
             <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -1249,7 +1249,7 @@ const SimulatorIntro = () => (
 
       <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
         <p className="text-sm text-slate-400">
-          Dados atualizados até Concurso {filteredData[0]?.concurso} • Dashboard by
+          Dados atualizados até Concurso {filteredData[0]?.concurso} • Análise e Dashboard por
           <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
         </p>
       </footer>
