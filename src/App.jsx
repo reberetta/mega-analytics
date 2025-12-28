@@ -51,9 +51,8 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
     <p className="text-slate-500 max-w-2xl mt-1 text-sm">{subtitle}</p>
   </div>
 );
-
 /** * =================================================================================
- * [FERRAMENTA] SIMULADOR DE APOSTA (ORDEM CORRIGIDA)
+ * [FERRAMENTA] SIMULADOR DE APOSTA (CORRIGIDO + SCORE DE QUALIDADE)
  * =================================================================================
  */
 const BetSimulator = ({ termometroData }) => {
@@ -63,7 +62,6 @@ const BetSimulator = ({ termometroData }) => {
   const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
   const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55];
 
-  // Handler de Input
   const handleInput = (val, index) => {
     if (val !== "" && (isNaN(val) || val < 1 || val > 60)) return;
     const newBet = [...bet];
@@ -78,15 +76,17 @@ const BetSimulator = ({ termometroData }) => {
     const nums = bet.map(n => parseInt(n)).filter(n => !isNaN(n));
     if (nums.length < 6) return null;
 
-    // 1. Soma
+    // --- 1. CÁLCULO DOS FATORES ---
+    
+    // Soma (Peso: Alto)
     const soma = nums.reduce((a, b) => a + b, 0);
     let somaStatus = (soma >= 143 && soma <= 223) ? "safe" : (soma >= 103 && soma <= 263 ? "warning" : "risk");
 
-    // 2. Pares
+    // Pares (Peso: Alto)
     const pares = nums.filter(n => n % 2 === 0).length;
     let parStatus = (pares >= 2 && pares <= 4) ? "safe" : "risk";
 
-    // 3. Linhas e Colunas Vazias
+    // Linhas e Colunas (Peso: Médio)
     const linhasUsadas = new Set(nums.map(n => Math.ceil(n / 10)));
     const colunasUsadas = new Set(nums.map(n => n % 10));
     const emptyLines = 6 - linhasUsadas.size;
@@ -94,7 +94,7 @@ const BetSimulator = ({ termometroData }) => {
     let lineStatus = (emptyLines >= 1 && emptyLines <= 2) ? "safe" : "warning";
     let colStatus = (emptyCols >= 4 && emptyCols <= 5) ? "safe" : "warning";
 
-    // 4. Quadrantes
+    // Quadrantes (FIX CORRIGIDO AQUI)
     const getQuad = (n) => {
       if (n % 10 === 0) return n <= 30 ? 2 : 4;
       if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
@@ -103,15 +103,29 @@ const BetSimulator = ({ termometroData }) => {
     const quadsCount = [0, 0, 0, 0, 0];
     nums.forEach(n => quadsCount[getQuad(n)]++);
     const emptyQuads = quadsCount.slice(1).filter(q => q === 0).length;
-    let quadStatus = emptyQuads === 1 ? "safe" : "warning";
+    
+    let quadStatus = "warning";
+    let quadText = "";
+    
+    if (emptyQuads === 1) {
+        quadStatus = "safe";
+        quadText = "1 Vazio (Ideal)";
+    } else if (emptyQuads === 0) {
+        quadStatus = "warning";
+        quadText = "Sem Vazio";
+    } else {
+        // Caso tenhamos 2 ou 3 vazios (muito concentrado)
+        quadStatus = "risk"; 
+        quadText = `${emptyQuads} Vazios (Conc.)`;
+    }
 
-    // 5. Primos & Fib
+    // Primos & Fib (Peso: Baixo/Médio)
     const qtdPrimos = nums.filter(n => PRIMOS.includes(n)).length;
     const qtdFib = nums.filter(n => FIBONACCI.includes(n)).length;
     let primoStatus = qtdPrimos <= 2 ? "safe" : (qtdPrimos === 3 ? "warning" : "risk");
     let fibStatus = qtdFib <= 1 ? "safe" : (qtdFib === 2 ? "warning" : "risk");
 
-    // 6. Hot/Cold
+    // Hot/Cold
     const hotColdAnalysis = nums.map(n => {
       const stat = termometroData.find(t => t.num === n);
       if (!stat) return null;
@@ -120,6 +134,30 @@ const BetSimulator = ({ termometroData }) => {
       return null;
     }).filter(x => x !== null);
 
+    // --- 2. CÁLCULO DO SCORE DE QUALIDADE (0 a 100) ---
+    // Atribuímos pontos para cada status: Safe=100%, Warning=50%, Risk=0%
+    // Pesos: Soma(2), Pares(2), Padrões(1.5), Especiais(1)
+    
+    const getPoints = (status) => status === "safe" ? 1 : (status === "warning" ? 0.5 : 0);
+    
+    let totalScore = 0;
+    let maxScore = 0;
+
+    // Soma (Peso 2)
+    totalScore += getPoints(somaStatus) * 2; maxScore += 2;
+    // Pares (Peso 2)
+    totalScore += getPoints(parStatus) * 2; maxScore += 2;
+    // Linhas/Colunas (Peso 1.5 cada)
+    totalScore += getPoints(lineStatus) * 1.5; maxScore += 1.5;
+    totalScore += getPoints(colStatus) * 1.5; maxScore += 1.5;
+    // Quadrantes (Peso 1.5)
+    totalScore += getPoints(quadStatus) * 1.5; maxScore += 1.5;
+    // Primos/Fib (Peso 1 cada)
+    totalScore += getPoints(primoStatus) * 1; maxScore += 1;
+    totalScore += getPoints(fibStatus) * 1; maxScore += 1;
+
+    const finalScore = Math.round((totalScore / maxScore) * 100);
+
     return { 
       soma, somaStatus, 
       pares, parStatus, 
@@ -127,8 +165,9 @@ const BetSimulator = ({ termometroData }) => {
       qtdFib, fibStatus,
       emptyLines, lineStatus,
       emptyCols, colStatus,
-      emptyQuads, quadStatus,
-      hotColdAnalysis 
+      emptyQuads, quadStatus, quadText, // Texto corrigido
+      hotColdAnalysis,
+      finalScore // Score Final
     };
   }, [bet, termometroData]);
 
@@ -148,6 +187,36 @@ const BetSimulator = ({ termometroData }) => {
       <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-bold ${colors[status]}`}>
         {icon[status]} {text}
       </span>
+    );
+  };
+
+  // Barra de Score Visual
+  const ScoreBar = ({ score }) => {
+    let color = "bg-rose-500";
+    let text = "Jogo Zebra (Arriscado)";
+    if (score >= 50) { color = "bg-amber-500"; text = "Jogo Razoável"; }
+    if (score >= 80) { color = "bg-emerald-500"; text = "Jogo Profissional (Matemático)"; }
+
+    return (
+      <div className="w-full bg-slate-800 rounded-xl p-4 border border-slate-700 mb-6 flex items-center gap-4">
+        <div className="bg-slate-900 p-3 rounded-full border border-slate-600">
+           <span className={`text-xl font-black ${score >= 80 ? 'text-emerald-400' : (score >= 50 ? 'text-amber-400' : 'text-rose-400')}`}>
+             {score}%
+           </span>
+        </div>
+        <div className="flex-1">
+           <div className="flex justify-between mb-1">
+             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Qualidade Estatística</span>
+             <span className="text-xs font-bold text-white">{text}</span>
+           </div>
+           <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
+             <div 
+               className={`h-full transition-all duration-1000 ease-out ${color}`} 
+               style={{ width: `${score}%` }}
+             />
+           </div>
+        </div>
+      </div>
     );
   };
 
@@ -184,92 +253,100 @@ const BetSimulator = ({ termometroData }) => {
         </div>
       </div>
 
-      {/* Resultados em Grid Compacto (Ordem Ajustada) */}
+      {/* Resultados */}
       {analysis ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 animate-in fade-in slide-in-from-top-2">
+        <div className="animate-in fade-in slide-in-from-top-2">
           
-          {/* 1. SOMA */}
-          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Soma</span>
-            <div>
-              <span className="text-xl font-black text-white block">{analysis.soma}</span>
-              <div className="mt-1"><StatusBadge status={analysis.somaStatus} text={analysis.somaStatus === 'safe' ? "Ideal" : "Extremo"} /></div>
-            </div>
-          </div>
+          {/* BARRA DE SCORE (NOVA) */}
+          <ScoreBar score={analysis.finalScore} />
 
-          {/* 2. PARES */}
-          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Par / Ímpar</span>
-            <div>
-              <span className="text-xl font-black text-white block">{analysis.pares}P / {6-analysis.pares}Í</span>
-              <div className="mt-1"><StatusBadge status={analysis.parStatus} text={analysis.parStatus === 'safe' ? "Equilibrado" : "Desbalanço"} /></div>
-            </div>
-          </div>
-
-          {/* 3. LINHAS/COLUNAS (Movido para cá) */}
-          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Vazios</span>
-            <div className="space-y-1 mt-1">
-               <div className="flex justify-between items-center text-xs">
-                 <span>{analysis.emptyLines} L. Vazias</span>
-                 <span className={`w-2 h-2 rounded-full ${analysis.lineStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-               </div>
-               <div className="flex justify-between items-center text-xs">
-                 <span>{analysis.emptyCols} C. Vazias</span>
-                 <span className={`w-2 h-2 rounded-full ${analysis.colStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-               </div>
-            </div>
-          </div>
-
-           {/* 4. QUADRANTES (Movido para cá) */}
-           <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
-            <div>
-              <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
-              <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadStatus === 'safe' ? "1 Vazio (Ideal)" : "Sem Vazio"} /></div>
-            </div>
-          </div>
-
-          {/* 5. ESPECIAIS (Movido para cá) */}
-          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Especiais</span>
-            <div className="space-y-1 mt-1">
-               <div className="flex justify-between items-center text-xs">
-                 <span>{analysis.qtdPrimos} Primos</span>
-                 <span className={`w-2 h-2 rounded-full ${analysis.primoStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-               </div>
-               <div className="flex justify-between items-center text-xs">
-                 <span>{analysis.qtdFib} Fibon.</span>
-                 <span className={`w-2 h-2 rounded-full ${analysis.fibStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-               </div>
-            </div>
-          </div>
-
-          {/* 6. TEMPERATURA */}
-          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-start overflow-y-auto max-h-[100px]">
-            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block">Temperatura</span>
-            {analysis.hotColdAnalysis.length === 0 ? (
-               <span className="text-xs text-slate-500">Neutro.</span>
-            ) : (
-              <div className="space-y-1">
-                {analysis.hotColdAnalysis.map((hc, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs bg-slate-900/50 p-1 rounded">
-                    <span className="font-bold text-white">#{String(hc.num).padStart(2,'0')}</span>
-                    {hc.type === 'hot' 
-                      ? <span className="text-rose-400 font-bold flex items-center gap-1"><Flame size={10}/> Quente</span>
-                      : <span className="text-cyan-400 font-bold flex items-center gap-1"><Snowflake size={10}/> Frio</span>
-                    }
-                  </div>
-                ))}
+          {/* GRID DE DETALHES (ORDEM CORRIGIDA) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            
+            {/* 1. SOMA */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Soma</span>
+              <div>
+                <span className="text-xl font-black text-white block">{analysis.soma}</span>
+                <div className="mt-1"><StatusBadge status={analysis.somaStatus} text={analysis.somaStatus === 'safe' ? "Ideal" : "Extremo"} /></div>
               </div>
-            )}
-          </div>
+            </div>
 
+            {/* 2. PARES */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Par / Ímpar</span>
+              <div>
+                <span className="text-xl font-black text-white block">{analysis.pares}P / {6-analysis.pares}Í</span>
+                <div className="mt-1"><StatusBadge status={analysis.parStatus} text={analysis.parStatus === 'safe' ? "Equilibrado" : "Desbalanço"} /></div>
+              </div>
+            </div>
+
+            {/* 3. LINHAS/COLUNAS */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Vazios</span>
+              <div className="space-y-1 mt-1">
+                <div className="flex justify-between items-center text-xs">
+                  <span>{analysis.emptyLines} L. Vazias</span>
+                  <span className={`w-2 h-2 rounded-full ${analysis.lineStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span>{analysis.emptyCols} C. Vazias</span>
+                  <span className={`w-2 h-2 rounded-full ${analysis.colStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. QUADRANTES (CORRIGIDO) */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
+              <div>
+                <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
+                {/* Agora usa analysis.quadText corrigido */}
+                <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadText} /></div>
+              </div>
+            </div>
+
+            {/* 5. ESPECIAIS */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Especiais</span>
+              <div className="space-y-1 mt-1">
+                <div className="flex justify-between items-center text-xs">
+                  <span>{analysis.qtdPrimos} Primos</span>
+                  <span className={`w-2 h-2 rounded-full ${analysis.primoStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span>{analysis.qtdFib} Fibon.</span>
+                  <span className={`w-2 h-2 rounded-full ${analysis.fibStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. TEMPERATURA */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-start overflow-y-auto max-h-[100px]">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block">Temperatura</span>
+              {analysis.hotColdAnalysis.length === 0 ? (
+                <span className="text-xs text-slate-500">Neutro.</span>
+              ) : (
+                <div className="space-y-1">
+                  {analysis.hotColdAnalysis.map((hc, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs bg-slate-900/50 p-1 rounded">
+                      <span className="font-bold text-white">#{String(hc.num).padStart(2,'0')}</span>
+                      {hc.type === 'hot' 
+                        ? <span className="text-rose-400 font-bold flex items-center gap-1"><Flame size={10}/> Quente</span>
+                        : <span className="text-cyan-400 font-bold flex items-center gap-1"><Snowflake size={10}/> Frio</span>
+                      }
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
         </div>
       ) : (
         <div className="text-center py-4 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed flex items-center justify-center gap-2">
           <Wand2 className="text-slate-600" size={18} />
-          <p className="text-slate-500 text-sm font-medium">Preencha os 6 números para validar.</p>
+          <p className="text-slate-500 text-sm font-medium">Preencha os 6 números para ver seu Score de Qualidade.</p>
         </div>
       )}
     </div>
