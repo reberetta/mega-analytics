@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import {
   Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer,
-  Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2, Calculator, Wand2, RefreshCcw,Trash2,
+  Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2, Calculator, Wand2, RefreshCcw, Trash2,
   Check, AlertTriangle, XCircle
 } from 'lucide-react';
 import rawData from './mega_sena_data.json';
@@ -698,9 +698,9 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
     return (
       // Aumentei a largura máxima e removi paddings desnecessários
       <div className="relative w-full max-w-2xl mx-auto p-4 sm:p-6 bg-slate-800/40 rounded-[32px] border border-slate-700/50 backdrop-blur-sm mt-4">
-        
+
         {/* Labels de Colunas (Top) - Agora com larguras sincronizadas com o grid */}
-        <div className="flex mb-2 ml-8 pr-1"> 
+        <div className="flex mb-2 ml-8 pr-1">
           {Array.from({ length: 10 }, (_, i) => (
             <span key={i} className="flex-1 text-[10px] font-black text-slate-500 text-center uppercase">
               C{i + 1}
@@ -1147,13 +1147,13 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button
+            {/* <button
               onClick={() => setFilterVirada(!filterVirada)}
               className={`px-5 py-2 rounded-full text-xs font-bold transition-all border-2 ${filterVirada ? 'bg-indigo-600 border-indigo-600 text-white' : 'border-slate-200 text-slate-500 hover:border-indigo-200'
                 }`}
             >
-              {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ VIRADA'}
-            </button>
+              {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ JOGOS DA VIRADA'}
+            </button> */}
             <div className="h-8 w-[1px] bg-slate-100 mx-2" />
             <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
           </div>
@@ -1163,41 +1163,34 @@ export default function Dashboard() {
       {/* CONTEÚDO */}
       <main className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* INTRODUÇÃO */}
-        <div className="bg-indigo-900 rounded-[40px] p-10 mb-12 text-white shadow-2xl shadow-indigo-900/50 relative overflow-hidden">
-          {/* Ícone de Fundo - Movido para o canto INFERIOR direito */}
-          <div className="absolute bottom-0 right-0 opacity-[0.07] transform translate-x-1/4 translate-y-1/4 pointer-events-none">
-            <Binary size={400} />
+        {/* INTRODUÇÃO DISCRETA E COMPACTA */}
+        <div className="bg-indigo-900 rounded-[32px] p-6 lg:p-8 mb-8 text-white shadow-xl shadow-indigo-900/20 relative overflow-hidden">
+          {/* Ícone de Fundo mais sutil */}
+          <div className="absolute bottom-0 right-0 opacity-[0.05] transform translate-x-1/4 translate-y-1/4 pointer-events-none">
+            <Binary size={250} />
           </div>
 
-          {/* Conteúdo de Texto - Ajustado max-w-3xl para leitura mais focada */}
-          <div className="relative z-10 max-w-3xl">
-            <div className="flex items-center gap-4 mb-8">
-              <div className="p-3 bg-indigo-500/20 rounded-xl backdrop-blur-md border border-indigo-400/30 shadow-inner shadow-indigo-300/20">
-                <Sparkles size={28} className="text-amber-300" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+            {/* Título e Ícone lateralizados */}
+            <div className="flex items-center gap-4 shrink-0 border-b md:border-b-0 md:border-r border-indigo-500/30 pb-4 md:pb-0 md:pr-6">
+              <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-md border border-indigo-400/30">
+                <Sparkles size={20} className="text-amber-300" />
               </div>
-              <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
-                Quando seis números se encontram, a aleatoriedade muda de forma.
+              <h2 className="text-xl lg:text-2xl font-black tracking-tighter leading-tight max-w-[200px]">
+                Análise de <br /><span className="text-indigo-300">Tendências</span>
               </h2>
             </div>
-            
-            <div className="space-y-6 text-indigo-100 text-lg leading-relaxed font-medium">
-              <p className="opacity-90">
-                Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.
+
+            {/* Texto consolidado */}
+            <div className="flex-1 space-y-3">
+              <p className="text-sm lg:text-base text-indigo-100 leading-snug">
+                Embora cada número tenha a mesma chance, os <b className="text-white">conjuntos de seis dezenas</b> revelam padrões claros ao longo do tempo.
+                Cruzamos dados de <b className="text-amber-300">{stats.total} concursos</b> para identificar comportamentos recorrentes e combinações raras.
               </p>
-              <p>
-                O que esta análise investiga é outra coisa: <b className="text-amber-300 font-black">como os conjuntos de seis números se comportam ao longo do tempo.</b>
+              <p className="text-xs uppercase tracking-widest font-bold text-indigo-400 flex items-center gap-2">
+                <span className="w-8 h-[1px] bg-indigo-500/50"></span>
+                Dados não prometem prêmios, oferecem contexto.
               </p>
-              <p className="opacity-90">
-                Foram analisados <b className="text-white">{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.
-              </p>
-              
-              <div className="pt-4 border-t border-indigo-800/50">
-                <p className="text-xl font-bold text-white">
-                  Aqui, os dados não prometem prêmios. <br/>
-                  <span className="text-indigo-300">Eles oferecem contexto.</span>
-                </p>
-              </div>
             </div>
           </div>
         </div>
@@ -1226,8 +1219,30 @@ export default function Dashboard() {
         {/* 7. CHECKLIST FINAL  */}
         <ChecklistValidator />
 
+const SimulatorIntro = () => (
+        <div className="max-w-4xl mb-8">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3">
+            Sua Estratégia, <span className="text-indigo-600">Validada por Dados</span>
+          </h2>
+          <p className="text-slate-600 leading-relaxed mb-4">
+            Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer?
+            Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história.
+          </p>
+
+          <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+            <div className="text-amber-600 shrink-0">
+              <AlertCircle size={20} />
+            </div>
+            <p className="text-[13px] text-amber-800 leading-tight">
+              <strong>Atenção:</strong> Esta ferramenta é de apoio analítico. Padrões estatísticos ajudam a entender tendências,
+              mas não garantem prêmios ou preveem resultados, pois cada sorteio é um evento independente.
+            </p>
+          </div>
+        </div>
+        );
+
         {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
-         <BetSimulator termometroData={stats.termometro} /> 
+        <BetSimulator termometroData={stats.termometro} />
 
 
       </main>
