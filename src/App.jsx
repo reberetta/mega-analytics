@@ -52,13 +52,12 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
   </div>
 );
 /** * =================================================================================
- * [FERRAMENTA] SIMULADOR DE APOSTA (CORRIGIDO + SCORE DE QUALIDADE)
+ * [FERRAMENTA] SIMULADOR DE APOSTA (NOTA 0-10 + GERADOR ALEATÓRIO)
  * =================================================================================
  */
 const BetSimulator = ({ termometroData }) => {
   const [bet, setBet] = useState(["", "", "", "", "", ""]);
 
-  // Dados Estáticos
   const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
   const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55];
 
@@ -71,22 +70,29 @@ const BetSimulator = ({ termometroData }) => {
 
   const clearBet = () => setBet(["", "", "", "", "", ""]);
 
-  // --- ENGINE DE ANÁLISE ---
+  // Função para gerar jogo aleatório
+  const generateRandomBet = () => {
+    const numbers = [];
+    while (numbers.length < 6) {
+      const r = Math.floor(Math.random() * 60) + 1;
+      if (!numbers.includes(r)) numbers.push(r);
+    }
+    setBet(numbers.sort((a, b) => a - b).map(n => String(n)));
+  };
+
   const analysis = useMemo(() => {
     const nums = bet.map(n => parseInt(n)).filter(n => !isNaN(n));
     if (nums.length < 6) return null;
 
-    // --- 1. CÁLCULO DOS FATORES ---
-
-    // Soma (Peso: Alto)
+    // 1. Soma
     const soma = nums.reduce((a, b) => a + b, 0);
     let somaStatus = (soma >= 143 && soma <= 223) ? "safe" : (soma >= 103 && soma <= 263 ? "warning" : "risk");
 
-    // Pares (Peso: Alto)
+    // 2. Pares
     const pares = nums.filter(n => n % 2 === 0).length;
     let parStatus = (pares >= 2 && pares <= 4) ? "safe" : "risk";
 
-    // Linhas e Colunas (Peso: Médio)
+    // 3. Linhas e Colunas
     const linhasUsadas = new Set(nums.map(n => Math.ceil(n / 10)));
     const colunasUsadas = new Set(nums.map(n => n % 10));
     const emptyLines = 6 - linhasUsadas.size;
@@ -94,7 +100,7 @@ const BetSimulator = ({ termometroData }) => {
     let lineStatus = (emptyLines >= 1 && emptyLines <= 2) ? "safe" : "warning";
     let colStatus = (emptyCols >= 4 && emptyCols <= 5) ? "safe" : "warning";
 
-    // Quadrantes (FIX CORRIGIDO AQUI)
+    // 4. Quadrantes (REVISADO: 3-2-1-0 ou 2-2-1-1 são Safe)
     const getQuad = (n) => {
       if (n % 10 === 0) return n <= 30 ? 2 : 4;
       if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
@@ -104,28 +110,29 @@ const BetSimulator = ({ termometroData }) => {
     nums.forEach(n => quadsCount[getQuad(n)]++);
     const emptyQuads = quadsCount.slice(1).filter(q => q === 0).length;
 
-    let quadStatus = "warning";
-    let quadText = "";
+    let quadStatus = "risk";
+    let quadText = `${emptyQuads} Vazios`;
 
-    if (emptyQuads === 1) {
+    if (emptyQuads === 1 || emptyQuads === 0) {
       quadStatus = "safe";
-      quadText = "1 Vazio (Ideal)";
-    } else if (emptyQuads === 0) {
-      quadStatus = "warning";
-      quadText = "Sem Vazio";
+      quadText = emptyQuads === 1 ? "3-2-1-0 (Ideal)" : "2-2-1-1 (Equilíbrio)";
     } else {
-      // Caso tenhamos 2 ou 3 vazios (muito concentrado)
       quadStatus = "risk";
-      quadText = `${emptyQuads} Vazios (Conc.)`;
+      quadText = "Concentrado";
     }
 
-    // Primos & Fib (Peso: Baixo/Médio)
+    // 5. Primos & Fib
     const qtdPrimos = nums.filter(n => PRIMOS.includes(n)).length;
     const qtdFib = nums.filter(n => FIBONACCI.includes(n)).length;
     let primoStatus = qtdPrimos <= 2 ? "safe" : (qtdPrimos === 3 ? "warning" : "risk");
     let fibStatus = qtdFib <= 1 ? "safe" : (qtdFib === 2 ? "warning" : "risk");
 
-    // Hot/Cold
+    // 6. Temperatura (REVISADO: Max 1 de cada)
+    const hotNums = nums.filter(n => termometroData.find(t => t.num === n)?.freqLast20 >= 3);
+    const coldNums = nums.filter(n => termometroData.find(t => t.num === n)?.lag >= 15);
+
+    let tempStatus = (hotNums.length <= 1 && coldNums.length <= 1) ? "safe" : "warning";
+
     const hotColdAnalysis = nums.map(n => {
       const stat = termometroData.find(t => t.num === n);
       if (!stat) return null;
@@ -134,29 +141,17 @@ const BetSimulator = ({ termometroData }) => {
       return null;
     }).filter(x => x !== null);
 
-    // --- 2. CÁLCULO DO SCORE DE QUALIDADE (0 a 100) ---
-    // Atribuímos pontos para cada status: Safe=100%, Warning=50%, Risk=0%
-    // Pesos: Soma(2), Pares(2), Padrões(1.5), Especiais(1)
-
+    // SCORE FINAL (0 a 10)
     const getPoints = (status) => status === "safe" ? 1 : (status === "warning" ? 0.5 : 0);
-
     let totalScore = 0;
-    let maxScore = 0;
+    totalScore += getPoints(somaStatus) * 2;
+    totalScore += getPoints(parStatus) * 2;
+    totalScore += getPoints(lineStatus) * 1.5;
+    totalScore += getPoints(colStatus) * 1.5;
+    totalScore += getPoints(quadStatus) * 1.5;
+    totalScore += getPoints(tempStatus) * 1.5; // Temperatura agora pesa no score
 
-    // Soma (Peso 2)
-    totalScore += getPoints(somaStatus) * 2; maxScore += 2;
-    // Pares (Peso 2)
-    totalScore += getPoints(parStatus) * 2; maxScore += 2;
-    // Linhas/Colunas (Peso 1.5 cada)
-    totalScore += getPoints(lineStatus) * 1.5; maxScore += 1.5;
-    totalScore += getPoints(colStatus) * 1.5; maxScore += 1.5;
-    // Quadrantes (Peso 1.5)
-    totalScore += getPoints(quadStatus) * 1.5; maxScore += 1.5;
-    // Primos/Fib (Peso 1 cada)
-    totalScore += getPoints(primoStatus) * 1; maxScore += 1;
-    totalScore += getPoints(fibStatus) * 1; maxScore += 1;
-
-    const finalScore = Math.round((totalScore / maxScore) * 100);
+    const finalGrade = (totalScore / 10 * 10).toFixed(1);
 
     return {
       soma, somaStatus,
@@ -165,55 +160,44 @@ const BetSimulator = ({ termometroData }) => {
       qtdFib, fibStatus,
       emptyLines, lineStatus,
       emptyCols, colStatus,
-      emptyQuads, quadStatus, quadText, // Texto corrigido
+      emptyQuads, quadStatus, quadText,
       hotColdAnalysis,
-      finalScore // Score Final
+      tempStatus,
+      finalGrade
     };
   }, [bet, termometroData]);
 
-  // Badge Visual
   const StatusBadge = ({ status, text }) => {
-    const colors = {
-      safe: "bg-emerald-100 text-emerald-700 border-emerald-200",
-      warning: "bg-amber-100 text-amber-700 border-amber-200",
-      risk: "bg-rose-100 text-rose-700 border-rose-200"
-    };
-    const icon = {
-      safe: <CheckCircle2 size={14} />,
-      warning: <AlertTriangle size={14} />,
-      risk: <XCircle size={14} />
-    };
+    const colors = { safe: "bg-emerald-100 text-emerald-700 border-emerald-200", warning: "bg-amber-100 text-amber-700 border-amber-200", risk: "bg-rose-100 text-rose-700 border-rose-200" };
+    const icon = { safe: <CheckCircle2 size={14} />, warning: <AlertTriangle size={14} />, risk: <XCircle size={14} /> };
     return (
-      <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-bold ${colors[status]}`}>
+      <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold uppercase ${colors[status]}`}>
         {icon[status]} {text}
       </span>
     );
   };
 
-  // Barra de Score Visual
-  const ScoreBar = ({ score }) => {
+  const ScoreBar = ({ grade }) => {
+    const g = parseFloat(grade);
     let color = "bg-rose-500";
-    let text = "Jogo Zebra (Arriscado)";
-    if (score >= 50) { color = "bg-amber-500"; text = "Jogo Razoável"; }
-    if (score >= 80) { color = "bg-emerald-500"; text = "Jogo Profissional (Matemático)"; }
+    let text = "Jogo Fora de Padrão";
+    if (g >= 5) { color = "bg-amber-500"; text = "Jogo Mediano"; }
+    if (g >= 8.5) { color = "bg-emerald-500"; text = "Estatisticamente Forte"; }
 
     return (
       <div className="w-full bg-slate-800 rounded-xl p-4 border border-slate-700 mb-6 flex items-center gap-4">
-        <div className="bg-slate-900 p-3 rounded-full border border-slate-600">
-          <span className={`text-xl font-black ${score >= 80 ? 'text-emerald-400' : (score >= 50 ? 'text-amber-400' : 'text-rose-400')}`}>
-            {score}%
+        <div className="bg-slate-900 p-3 rounded-full border border-slate-600 min-w-[70px] text-center">
+          <span className={`text-2xl font-black ${g >= 8.5 ? 'text-emerald-400' : (g >= 5 ? 'text-amber-400' : 'text-rose-400')}`}>
+            {grade}
           </span>
         </div>
         <div className="flex-1">
           <div className="flex justify-between mb-1">
-            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">Qualidade Estatística</span>
-            <span className="text-xs font-bold text-white">{text}</span>
+            <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Nota de Qualidade</span>
+            <span className="text-xs font-bold text-white uppercase">{text}</span>
           </div>
           <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
-            <div
-              className={`h-full transition-all duration-1000 ease-out ${color}`}
-              style={{ width: `${score}%` }}
-            />
+            <div className={`h-full transition-all duration-1000 ease-out ${color}`} style={{ width: `${g * 10}%` }} />
           </div>
         </div>
       </div>
@@ -222,8 +206,6 @@ const BetSimulator = ({ termometroData }) => {
 
   return (
     <div className="bg-slate-900 rounded-[24px] p-6 mb-12 shadow-xl border border-slate-700 text-white">
-
-      {/* Header + Inputs */}
       <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
         <div className="flex items-center gap-3 shrink-0">
           <div className="p-2 bg-indigo-500 rounded-lg shadow-lg shadow-indigo-500/50">
@@ -231,124 +213,97 @@ const BetSimulator = ({ termometroData }) => {
           </div>
           <div>
             <h3 className="text-lg font-bold text-white leading-none">Simulador</h3>
-            <p className="text-slate-400 text-xs">Teste seus números</p>
+            <p className="text-slate-400 text-xs tracking-tighter uppercase">Validação de Tendências</p>
           </div>
         </div>
 
-        {/* Inputs Compactos */}
-        <div className="flex gap-2">
-          {bet.map((val, i) => (
-            <input
-              key={i}
-              type="number"
-              value={val}
-              onChange={(e) => handleInput(e.target.value, i)}
-              className="w-12 h-12 bg-slate-800 border border-slate-600 rounded-lg text-center text-lg font-bold text-white focus:outline-none focus:border-indigo-400 focus:bg-slate-700 transition-all placeholder-slate-700"
-              placeholder="00"
-            />
-          ))}
-          <button onClick={clearBet} className="ml-2 p-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Limpar">
-            <RefreshCcw size={18} />
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-2">
+            {bet.map((val, i) => (
+              <input
+                key={i} type="number" value={val}
+                onChange={(e) => handleInput(e.target.value, i)}
+                className="w-11 h-11 bg-slate-800 border border-slate-600 rounded-lg text-center text-lg font-bold text-white focus:border-indigo-400 transition-all outline-none"
+                placeholder="00"
+              />
+            ))}
+          </div>
+          <div className="flex gap-1 ml-2">
+            <button onClick={generateRandomBet} className="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all" title="Gerar Jogo Aleatório">
+              <Wand2 size={18} />
+            </button>
+            <button onClick={clearBet} className="p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-all" title="Limpar Jogo">
+              <Trash2 size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Resultados */}
       {analysis ? (
-        <div className="animate-in fade-in slide-in-from-top-2">
-
-          {/* BARRA DE SCORE (NOVA) */}
-          <ScoreBar score={analysis.finalScore} />
-
-          {/* GRID DE DETALHES (ORDEM CORRIGIDA) */}
+        <div className="animate-in fade-in duration-500">
+          <ScoreBar grade={analysis.finalGrade} />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-
-            {/* 1. SOMA */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Soma</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Soma</span>
               <div>
-                <span className="text-xl font-black text-white block">{analysis.soma}</span>
-                <div className="mt-1"><StatusBadge status={analysis.somaStatus} text={analysis.somaStatus === 'safe' ? "Ideal" : "Extremo"} /></div>
+                <span className="text-xl font-black block">{analysis.soma}</span>
+                <StatusBadge status={analysis.somaStatus} text={analysis.somaStatus === 'safe' ? "Ok" : "Alerta"} />
               </div>
             </div>
 
-            {/* 2. PARES */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Par / Ímpar</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Paridade</span>
               <div>
-                <span className="text-xl font-black text-white block">{analysis.pares}P / {6 - analysis.pares}Í</span>
-                <div className="mt-1"><StatusBadge status={analysis.parStatus} text={analysis.parStatus === 'safe' ? "Equilibrado" : "Desbalanço"} /></div>
+                <span className="text-xl font-black block">{analysis.pares}P/{6 - analysis.pares}Í</span>
+                <StatusBadge status={analysis.parStatus} text={analysis.parStatus === 'safe' ? "Ok" : "Ruído"} />
               </div>
             </div>
 
-
-
-            {/* 4. QUADRANTES (CORRIGIDO) */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Quadrantes</span>
               <div>
-                <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
-                {/* Agora usa analysis.quadText corrigido */}
-                <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadText} /></div>
+                <span className="text-sm font-bold block mb-1">{analysis.quadText}</span>
+                <StatusBadge status={analysis.quadStatus} text={analysis.quadStatus === 'safe' ? "Ideal" : "Desequilíbrio"} />
               </div>
             </div>
 
-                        {/* 3. LINHAS/COLUNAS */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Vazios</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Vazios</span>
               <div className="space-y-1 mt-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span>{analysis.emptyLines} L. Vazias</span>
-                  <span className={`w-2 h-2 rounded-full ${analysis.lineStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span>{analysis.emptyCols} C. Vazias</span>
-                  <span className={`w-2 h-2 rounded-full ${analysis.colStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-                </div>
+                <div className="flex justify-between text-[10px]"><span>L. Vazias</span><span className={analysis.lineStatus === 'safe' ? 'text-emerald-400' : 'text-amber-400'}>{analysis.emptyLines}</span></div>
+                <div className="flex justify-between text-[10px]"><span>C. Vazias</span><span className={analysis.colStatus === 'safe' ? 'text-emerald-400' : 'text-amber-400'}>{analysis.emptyCols}</span></div>
               </div>
             </div>
 
-            {/* 5. ESPECIAIS */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Especiais</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold">Especiais</span>
               <div className="space-y-1 mt-1">
-                <div className="flex justify-between items-center text-xs">
-                  <span>{analysis.qtdPrimos} Primos</span>
-                  <span className={`w-2 h-2 rounded-full ${analysis.primoStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                </div>
-                <div className="flex justify-between items-center text-xs">
-                  <span>{analysis.qtdFib} Fibon.</span>
-                  <span className={`w-2 h-2 rounded-full ${analysis.fibStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                </div>
+                <div className="flex justify-between text-[10px]"><span>Primos</span><span className={analysis.primoStatus === 'safe' ? 'text-emerald-400' : 'text-rose-400'}>{analysis.qtdPrimos}</span></div>
+                <div className="flex justify-between text-[10px]"><span>Fibon.</span><span className={analysis.fibStatus === 'safe' ? 'text-emerald-400' : 'text-rose-400'}>{analysis.qtdFib}</span></div>
               </div>
             </div>
 
-            {/* 6. TEMPERATURA */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-start overflow-y-auto max-h-[100px]">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block">Temperatura</span>
-              {analysis.hotColdAnalysis.length === 0 ? (
-                <span className="text-xs text-slate-500">Neutro.</span>
-              ) : (
-                <div className="space-y-1">
-                  {analysis.hotColdAnalysis.map((hc, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs bg-slate-900/50 p-1 rounded">
-                      <span className="font-bold text-white">#{String(hc.num).padStart(2, '0')}</span>
-                      {hc.type === 'hot'
-                        ? <span className="text-rose-400 font-bold flex items-center gap-1"><Flame size={10} /> Quente</span>
-                        : <span className="text-cyan-400 font-bold flex items-center gap-1"><Snowflake size={10} /> Frio</span>
-                      }
+              <div className="flex justify-between items-center mb-1">
+                <span className="text-[10px] text-slate-400 uppercase font-bold">Temperatura</span>
+                <div className={`w-2 h-2 rounded-full ${analysis.tempStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+              </div>
+              <div className="space-y-1">
+                {analysis.hotColdAnalysis.length === 0 ? <span className="text-[10px] text-slate-500 italic">Neutros</span> :
+                  analysis.hotColdAnalysis.map((hc, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-[10px] bg-slate-900/50 p-1 rounded">
+                      <span className="font-bold">#{String(hc.num).padStart(2, '0')}</span>
+                      <span className={hc.type === 'hot' ? 'text-rose-400' : 'text-cyan-400'}>{hc.type === 'hot' ? '🔥' : '❄️'}</span>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                }
+              </div>
             </div>
-
           </div>
         </div>
       ) : (
-        <div className="text-center py-4 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed flex items-center justify-center gap-2">
-          <Wand2 className="text-slate-600" size={18} />
-          <p className="text-slate-500 text-sm font-medium">Preencha os 6 números para ver seu Score de Qualidade.</p>
+        <div className="text-center py-6 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed">
+          <p className="text-slate-500 text-sm font-medium">Insira 6 dezenas ou gere um jogo aleatório para analisar.</p>
         </div>
       )}
     </div>
@@ -601,8 +556,8 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
   return (
     <div className="mb-16 border-b border-slate-100 pb-16">
 
-      {/* Cabeçalho de Introdução Matemática */}
-      <div className="max-w-3xl mb-10">
+      {/* Cabeçalho de Introdução Matemática - Ajustado para largura total */}
+      <div className="w-full mb-10">
         <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-3">
           Números <span className="text-amber-500">Especiais</span>
         </h3>
@@ -824,7 +779,7 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
 
             {renderMiniVolante()}
 
-            
+
           </div>
         </div>
       </div>
@@ -915,7 +870,7 @@ const ChartLinhasColunas = ({ dataLines, dataCols }) => {
         </div>
 
         <p className="text-xs text-pink-800 mt-6 bg-pink-50 p-3 rounded-lg border border-pink-100">
-          <b>Insight:</b>Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>. Isso indica que repetir o mesmo final (ex: 14 e 44, ambos na coluna 4) é um comportamento padrão e saudável para o seu jogo.
+          <b>Insight:</b> Com apenas 6 números, você sempre terá colunas vazias. O ideal é ter <b>4 ou 5 vazias</b>. Isso indica que repetir o mesmo final (ex: 14 e 44, ambos na coluna 4) é um comportamento padrão e saudável para o seu jogo.
         </p>
       </div>
 
@@ -1219,35 +1174,35 @@ export default function Dashboard() {
 
             </div>
           </div>
-          </div>
+        </div>
 
 
-          {/* 1. SOMA & SIGMA */}
-          <ChartSoma data={stats.soma} />
+        {/* 1. SOMA & SIGMA */}
+        <ChartSoma data={stats.soma} />
 
-          {/* 2. PAR / ÍMPAR */}
-          <ChartParImpar data={stats.pares} probSegura={stats.probPares} />
+        {/* 2. PAR / ÍMPAR */}
+        <ChartParImpar data={stats.pares} probSegura={stats.probPares} />
 
-          {/* 3. PRIMOS E FIBONACCI */}
-          <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
+        {/* 3. PRIMOS E FIBONACCI */}
+        <ChartPrimosFib dataPrimos={stats.primos} dataFib={stats.fib} />
 
 
 
-          {/* 4. QUADRANTES */}
-          <ChartQuadrantes dataAssinatura={stats.assinatura} />
+        {/* 4. QUADRANTES */}
+        <ChartQuadrantes dataAssinatura={stats.assinatura} />
 
-          {/* 4. LINHAS E COLUNAS  */}
-          <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
+        {/* 4. LINHAS E COLUNAS  */}
+        <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
 
-          {/* 5. TERMÔMETRO */}
-          <ChartTermometro data={stats.termometro} />
+        {/* 5. TERMÔMETRO */}
+        <ChartTermometro data={stats.termometro} />
 
-          {/* 7. CHECKLIST FINAL  */}
-          <ChecklistValidator />
+        {/* 7. CHECKLIST FINAL  */}
+        <ChecklistValidator />
 
-          {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
-          <BetSimulator termometroData={stats.termometro} />
-        
+        {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
+        <BetSimulator termometroData={stats.termometro} />
+
 
       </main>
 
