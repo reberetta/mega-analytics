@@ -233,60 +233,96 @@ const ChartParImpar = ({ data, probSegura }) => {
 };
 
 /** * =================================================================================
- * [GRÁFICO 3] PRIMOS E FIBONACCI
+ * [GRÁFICO 3] PRIMOS E FIBONACCI - CORRIGIDO (Fix de Altura)
  * =================================================================================
  */
 const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16 border-b border-slate-100 pb-16">
+      {/* --- CARTÃO PRIMOS --- */}
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-amber-50 rounded-2xl text-amber-600"><Binary size={24}/></div>
+          <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
+            <Binary size={24}/>
+          </div>
           <div>
             <h3 className="text-xl font-bold text-slate-800">Primos</h3>
             <p className="text-sm text-slate-400">Quantidade ideal por jogo</p>
           </div>
         </div>
-        <div className="h-64 flex-1">
+        
+        {/* CORREÇÃO: Removido flex-1 e forçado w-full h-64 (altura fixa de 16rem/256px) */}
+        <div className="w-full h-64 mt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dataPrimos}>
-              <XAxis dataKey="name" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'transparent'}} content={<CustomTooltip prefix="Qtd Primos:" />} />
+            <BarChart data={dataPrimos} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis 
+                dataKey="name" 
+                tick={{fontSize: 12, fill: '#64748b'}} 
+                axisLine={false} 
+                tickLine={false} 
+              />
+              <Tooltip 
+                cursor={{fill: '#f8fafc'}} 
+                content={<CustomTooltip prefix="Qtd Primos:" />} 
+              />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                 {dataPrimos.map((entry, index) => (
-                  <Cell key={index} fill={(entry.name === "1" || entry.name === "2") ? COLORS.warning : "#e2e8f0"} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={(entry.name === "1" || entry.name === "2") ? COLORS.warning : "#cbd5e1"} 
+                  />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-amber-800 mt-4 bg-amber-50 p-3 rounded-lg border border-amber-100">
+        
+        <p className="text-xs text-amber-800 mt-6 bg-amber-50 p-3 rounded-lg border border-amber-100">
           <b>Insight:</b> 66% dos resultados têm apenas <b>1 ou 2 primos</b>.
         </p>
       </div>
 
+      {/* --- CARTÃO FIBONACCI --- */}
       <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600"><Flame size={24}/></div>
+          <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
+            <Flame size={24}/>
+          </div>
           <div>
             <h3 className="text-xl font-bold text-slate-800">Fibonacci</h3>
             <p className="text-sm text-slate-400">Sequência: 1, 2, 3, 5, 8, 13...</p>
           </div>
         </div>
-        <div className="h-64 flex-1">
+
+        {/* CORREÇÃO: Altura fixa garantida */}
+        <div className="w-full h-64 mt-2">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={dataFib}>
-              <XAxis dataKey="name" tick={{fontSize: 12}} axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: 'transparent'}} content={<CustomTooltip prefix="Qtd Fibonacci:" />} />
+            <BarChart data={dataFib} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis 
+                dataKey="name" 
+                tick={{fontSize: 12, fill: '#64748b'}} 
+                axisLine={false} 
+                tickLine={false} 
+              />
+              <Tooltip 
+                cursor={{fill: '#f8fafc'}} 
+                content={<CustomTooltip prefix="Qtd Fibonacci:" />} 
+              />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                 {dataFib.map((entry, index) => (
-                  <Cell key={index} fill={(entry.name === "0" || entry.name === "1") ? COLORS.accent : "#e2e8f0"} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={(entry.name === "0" || entry.name === "1") ? COLORS.accent : "#cbd5e1"} 
+                  />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <p className="text-xs text-emerald-800 mt-4 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
+
+        <p className="text-xs text-emerald-800 mt-6 bg-emerald-50 p-3 rounded-lg border border-emerald-100">
           <b>Insight:</b> O padrão dominante é ter <b>0 ou 1</b> número Fibonacci.
         </p>
       </div>
