@@ -454,6 +454,8 @@ const ChecklistValidator = () => {
   );
 };
 
+
+
 /** * =================================================================================
  * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO) - CURVA COMPLETA
  * =================================================================================
@@ -1013,6 +1015,63 @@ const ChartTermometro = ({ data }) => {
 };
 
 /** * =================================================================================
+ * [GRÁFICO 2] PAR / ÍMPAR (HISTOGRAMA)
+ * =================================================================================
+ */
+const ChartParImpar = ({ data, probSegura }) => {
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 mb-16">
+      <div className="flex flex-col lg:flex-row gap-12 items-center">
+        <div className="lg:w-1/3">
+          <SectionHeader
+            title="Equilíbrio Par/Ímpar"
+            subtitle="A batalha entre Pares e Ímpares quase sempre termina em empate técnico."
+            icon={Hash}
+          />
+          <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mt-4">
+            <p className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">Zona de Segurança</p>
+            <div className="flex items-baseline gap-2 mb-2">
+              <span className="text-4xl font-black text-indigo-600">{probSegura}%</span>
+              <span className="text-sm font-bold text-indigo-500">dos jogos</span>
+            </div>
+            <p className="text-sm text-indigo-800 leading-snug">
+              Têm uma distribuição equilibrada de <b>2, 3 ou 4</b> números pares.
+            </p>
+          </div>
+          <p className="text-xs text-slate-400 mt-6 italic">
+            * Apostar em 6 pares ou 6 ímpares é jogar contra a estatística (acontece em menos de 2% dos casos).
+          </p>
+        </div>
+        <div className="lg:w-2/3 w-full h-[320px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(val) => `${val}P / ${6 - val}Í`}
+              />
+              <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip prefix="Configuração:" />} />
+              <Bar dataKey="value" radius={[8, 8, 8, 8]} barSize={40}>
+                {data.map((entry, index) => {
+                  const n = Number(entry.name);
+                  const isSafe = n >= 2 && n <= 4;
+                  return <Cell key={index} fill={isSafe ? COLORS.primary : COLORS.risk} fillOpacity={isSafe ? 1 : 0.3} />;
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+          <p className="text-center text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Quantidade de Números Pares</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/** * =================================================================================
  * [MAIN] DASHBOARD PRINCIPAL
  * =================================================================================
  */
@@ -1169,6 +1228,7 @@ export default function Dashboard() {
 
             </div>
           </div>
+          </div>
 
 
           {/* 1. SOMA & SIGMA */}
@@ -1196,8 +1256,7 @@ export default function Dashboard() {
 
           {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
           <BetSimulator termometroData={stats.termometro} />
-        </div>
-
+        
 
       </main>
 
