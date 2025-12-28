@@ -281,7 +281,19 @@ const BetSimulator = ({ termometroData }) => {
               </div>
             </div>
 
-            {/* 3. LINHAS/COLUNAS */}
+
+
+            {/* 4. QUADRANTES (CORRIGIDO) */}
+            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
+              <div>
+                <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
+                {/* Agora usa analysis.quadText corrigido */}
+                <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadText} /></div>
+              </div>
+            </div>
+
+                        {/* 3. LINHAS/COLUNAS */}
             <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
               <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Vazios</span>
               <div className="space-y-1 mt-1">
@@ -293,16 +305,6 @@ const BetSimulator = ({ termometroData }) => {
                   <span>{analysis.emptyCols} C. Vazias</span>
                   <span className={`w-2 h-2 rounded-full ${analysis.colStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                 </div>
-              </div>
-            </div>
-
-            {/* 4. QUADRANTES (CORRIGIDO) */}
-            <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
-              <div>
-                <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
-                {/* Agora usa analysis.quadText corrigido */}
-                <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadText} /></div>
               </div>
             </div>
 
@@ -605,7 +607,7 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
           Números <span className="text-amber-500">Especiais</span>
         </h3>
         <p className="text-slate-500 leading-relaxed text-sm">
-          Primos e Fibonacci são as <b>peças fundamentais da aritmética</b>. Na Mega-Sena, eles funcionam como um tempero: essenciais para o equilíbrio, mas desastrosos em excesso. O segredo estatístico não está em quantos você escolhe, mas em não saturar seu jogo com eles.
+          Primos e Fibonacci são <b>peças fundamentais da aritmética</b>. Na Mega-Sena, eles funcionam como um tempero: essenciais para o equilíbrio, mas desastrosos em excesso. O segredo estatístico não está em quantos você escolhe, mas em não saturar seu jogo com eles.
         </p>
       </div>
 
@@ -822,16 +824,7 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
 
             {renderMiniVolante()}
 
-            <div className="mt-8 grid grid-cols-2 gap-6 w-full max-w-lg border-t border-slate-800 pt-6">
-              <div>
-                <h5 className="text-[10px] font-black uppercase text-indigo-400 mb-1">Linhas (L1-L6)</h5>
-                <p className="text-[11px] text-slate-400 leading-tight">É estatisticamente normal ter de <b>1 a 2 linhas vazias</b> no seu jogo.</p>
-              </div>
-              <div>
-                <h5 className="text-[10px] font-black uppercase text-indigo-400 mb-1">Colunas (C1-C10)</h5>
-                <p className="text-[11px] text-slate-400 leading-tight">O padrão comum é ter entre <b>4 e 5 colunas sem nenhum número</b>.</p>
-              </div>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -950,9 +943,7 @@ const ChartTermometro = ({ data }) => {
           <Thermometer className="text-slate-400" size={20} />
           <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest">Destaques (Top 5)</h3>
         </div>
-        <span className="text-[10px] text-slate-400 font-medium hidden sm:block italic">
-          O segredo está no equilíbrio: evite saturar seu jogo com extremos.
-        </span>
+
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
@@ -961,7 +952,7 @@ const ChartTermometro = ({ data }) => {
         <div className="p-5 flex flex-col h-full">
           <div className="flex items-center gap-2 mb-4">
             <Flame className="text-rose-500 fill-rose-500" size={16} />
-            <span className="text-sm font-bold text-rose-700">Mais Frequentes (Últimos 20)</span>
+            <span className="text-sm font-bold text-rose-700">Mais Frequentes (Últimos 20 jogos)</span>
           </div>
 
           <div className="grid grid-cols-5 gap-2 mb-4">
@@ -987,7 +978,7 @@ const ChartTermometro = ({ data }) => {
         <div className="p-5 flex flex-col h-full">
           <div className="flex items-center gap-2 mb-4">
             <Snowflake className="text-cyan-500 fill-cyan-500" size={16} />
-            <span className="text-sm font-bold text-cyan-700">Mais Atrasadas (Lag)</span>
+            <span className="text-sm font-bold text-cyan-700">Mais Atrasadas</span>
           </div>
 
           <div className="grid grid-cols-5 gap-2 mb-4">
@@ -1024,8 +1015,8 @@ const ChartParImpar = ({ data, probSegura }) => {
       <div className="flex flex-col lg:flex-row gap-12 items-center">
         <div className="lg:w-1/3">
           <SectionHeader
-            title="Equilíbrio Par/Ímpar"
-            subtitle="A batalha entre Pares e Ímpares quase sempre termina em empate técnico."
+            title="A Lei da Simetria"
+            subtitle="Resultados puramente pares ou ímpares são anomalias. A aleatoriedade real tende ao equilíbrio."
             icon={Hash}
           />
           <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mt-4">
