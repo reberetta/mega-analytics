@@ -1166,7 +1166,7 @@ export default function Dashboard() {
                 <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.<p />
                   <p>Aqui, os dados não prometem prêmios.</p>
                   <p>Eles oferecem contexto.</p>
-                </div>
+                
             </div>
           </div>
 
