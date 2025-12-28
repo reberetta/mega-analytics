@@ -1162,8 +1162,8 @@ export default function Dashboard() {
             </div>
             <div className="space-y-4 text-indigo-50 text-lg leading-relaxed">
               <p>Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.</p>
-              <p>O que esta análise investiga é outra coisa: <b>como os conjuntos de seis números se comportam ao longo do tempo.</b><p />
-                <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.<p />
+              <p>O que esta análise investiga é outra coisa: <b>como os conjuntos de seis números se comportam ao longo do tempo.</b></p>
+                <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.</p>
                   <p>Aqui, os dados não prometem prêmios.</p>
                   <p>Eles oferecem contexto.</p>
                 
