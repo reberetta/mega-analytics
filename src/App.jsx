@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label 
+  AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label
 } from 'recharts';
 import {
-  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, 
+  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer,
   Snowflake, ClipboardCheck, ShieldCheck, CheckCircle2, Calculator, Wand2, RefreshCcw,
   Check, AlertTriangle, XCircle
 } from 'lucide-react';
@@ -53,21 +53,19 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
 );
 
 /** * =================================================================================
- * [FERRAMENTA] SIMULADOR DE APOSTA
+ * [FERRAMENTA] SIMULADOR DE APOSTA (ORDEM CORRIGIDA)
  * =================================================================================
  */
 const BetSimulator = ({ termometroData }) => {
   const [bet, setBet] = useState(["", "", "", "", "", ""]);
 
-  // Helpers de Dados Estáticos
+  // Dados Estáticos
   const PRIMOS = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59];
   const FIBONACCI = [1, 2, 3, 5, 8, 13, 21, 34, 55];
 
   // Handler de Input
   const handleInput = (val, index) => {
-    // Apenas números
     if (val !== "" && (isNaN(val) || val < 1 || val > 60)) return;
-    
     const newBet = [...bet];
     newBet[index] = val;
     setBet(newBet);
@@ -75,42 +73,50 @@ const BetSimulator = ({ termometroData }) => {
 
   const clearBet = () => setBet(["", "", "", "", "", ""]);
 
-  // --- ENGINE DE ANÁLISE DA APOSTA ---
+  // --- ENGINE DE ANÁLISE ---
   const analysis = useMemo(() => {
-    // Só analisa se tiver 6 números preenchidos
     const nums = bet.map(n => parseInt(n)).filter(n => !isNaN(n));
     if (nums.length < 6) return null;
 
     // 1. Soma
     const soma = nums.reduce((a, b) => a + b, 0);
-    let somaStatus = "risk";
-    if (soma >= 143 && soma <= 223) somaStatus = "safe";
-    else if (soma >= 103 && soma <= 263) somaStatus = "warning";
+    let somaStatus = (soma >= 143 && soma <= 223) ? "safe" : (soma >= 103 && soma <= 263 ? "warning" : "risk");
 
     // 2. Pares
     const pares = nums.filter(n => n % 2 === 0).length;
-    let parStatus = "risk";
-    if (pares >= 2 && pares <= 4) parStatus = "safe"; // 2, 3 ou 4 pares é o ideal
+    let parStatus = (pares >= 2 && pares <= 4) ? "safe" : "risk";
 
-    // 3. Primos
+    // 3. Linhas e Colunas Vazias
+    const linhasUsadas = new Set(nums.map(n => Math.ceil(n / 10)));
+    const colunasUsadas = new Set(nums.map(n => n % 10));
+    const emptyLines = 6 - linhasUsadas.size;
+    const emptyCols = 10 - colunasUsadas.size;
+    let lineStatus = (emptyLines >= 1 && emptyLines <= 2) ? "safe" : "warning";
+    let colStatus = (emptyCols >= 4 && emptyCols <= 5) ? "safe" : "warning";
+
+    // 4. Quadrantes
+    const getQuad = (n) => {
+      if (n % 10 === 0) return n <= 30 ? 2 : 4;
+      if (n <= 30) return (n % 10 >= 1 && n % 10 <= 5) ? 1 : 2;
+      return (n % 10 >= 1 && n % 10 <= 5) ? 3 : 4;
+    };
+    const quadsCount = [0, 0, 0, 0, 0];
+    nums.forEach(n => quadsCount[getQuad(n)]++);
+    const emptyQuads = quadsCount.slice(1).filter(q => q === 0).length;
+    let quadStatus = emptyQuads === 1 ? "safe" : "warning";
+
+    // 5. Primos & Fib
     const qtdPrimos = nums.filter(n => PRIMOS.includes(n)).length;
-    let primoStatus = "risk";
-    if (qtdPrimos <= 2) primoStatus = "safe"; // Até 2 primos é safe
-    else if (qtdPrimos === 3) primoStatus = "warning";
-
-    // 4. Fibonacci
     const qtdFib = nums.filter(n => FIBONACCI.includes(n)).length;
-    let fibStatus = "risk";
-    if (qtdFib <= 1) fibStatus = "safe";
-    else if (qtdFib === 2) fibStatus = "warning";
+    let primoStatus = qtdPrimos <= 2 ? "safe" : (qtdPrimos === 3 ? "warning" : "risk");
+    let fibStatus = qtdFib <= 1 ? "safe" : (qtdFib === 2 ? "warning" : "risk");
 
-    // 5. Hot/Cold (Cruzamento com dados do Termômetro)
-    // Precisamos achar estatísticas para esses números
+    // 6. Hot/Cold
     const hotColdAnalysis = nums.map(n => {
       const stat = termometroData.find(t => t.num === n);
       if (!stat) return null;
-      if (stat.freqLast20 >= 3) return { type: 'hot', val: stat.freqLast20 };
-      if (stat.lag >= 15) return { type: 'cold', val: stat.lag };
+      if (stat.freqLast20 >= 3) return { num: n, type: 'hot', val: stat.freqLast20 };
+      if (stat.lag >= 15) return { num: n, type: 'cold', val: stat.lag };
       return null;
     }).filter(x => x !== null);
 
@@ -119,117 +125,153 @@ const BetSimulator = ({ termometroData }) => {
       pares, parStatus, 
       qtdPrimos, primoStatus, 
       qtdFib, fibStatus,
+      emptyLines, lineStatus,
+      emptyCols, colStatus,
+      emptyQuads, quadStatus,
       hotColdAnalysis 
     };
   }, [bet, termometroData]);
 
-  // Componente Visual de Status (Badge)
-  const StatusBadge = ({ status, labelSafe, labelRisk }) => {
-    if (status === "safe") return <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded-full"><Check size={12}/> {labelSafe}</span>;
-    if (status === "warning") return <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full"><AlertTriangle size={12}/> Atenção</span>;
-    return <span className="flex items-center gap-1 text-[10px] font-bold text-rose-600 bg-rose-100 px-2 py-1 rounded-full"><XCircle size={12}/> {labelRisk || "Risco"}</span>;
+  // Badge Visual
+  const StatusBadge = ({ status, text }) => {
+    const colors = {
+      safe: "bg-emerald-100 text-emerald-700 border-emerald-200",
+      warning: "bg-amber-100 text-amber-700 border-amber-200",
+      risk: "bg-rose-100 text-rose-700 border-rose-200"
+    };
+    const icon = {
+      safe: <CheckCircle2 size={14} />,
+      warning: <AlertTriangle size={14} />,
+      risk: <XCircle size={14} />
+    };
+    return (
+      <span className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs font-bold ${colors[status]}`}>
+        {icon[status]} {text}
+      </span>
+    );
   };
 
   return (
-    <div className="bg-slate-900 rounded-[32px] p-8 mb-16 shadow-2xl shadow-slate-400/20 text-white relative overflow-hidden border border-slate-700">
+    <div className="bg-slate-900 rounded-[24px] p-6 mb-12 shadow-xl border border-slate-700 text-white">
       
-      {/* Título */}
-      <div className="flex items-center justify-between mb-8 relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-500 rounded-xl shadow-lg shadow-indigo-500/50">
-            <Calculator className="text-white" size={24} />
+      {/* Header + Inputs */}
+      <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="p-2 bg-indigo-500 rounded-lg shadow-lg shadow-indigo-500/50">
+            <Calculator className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white">Simulador de Aposta</h3>
-            <p className="text-slate-400 text-sm">Valide seus números antes de jogar.</p>
+            <h3 className="text-lg font-bold text-white leading-none">Simulador</h3>
+            <p className="text-slate-400 text-xs">Teste seus números</p>
           </div>
         </div>
-        <button onClick={clearBet} className="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg transition-colors">
-          <RefreshCcw size={14}/> Limpar
-        </button>
-      </div>
 
-      {/* Inputs */}
-      <div className="grid grid-cols-6 gap-2 md:gap-4 mb-8 relative z-10 max-w-3xl mx-auto">
-        {bet.map((val, i) => (
-          <div key={i} className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur opacity-20 group-focus-within:opacity-100 transition-opacity"></div>
+        {/* Inputs Compactos */}
+        <div className="flex gap-2">
+          {bet.map((val, i) => (
             <input 
+              key={i}
               type="number" 
               value={val}
               onChange={(e) => handleInput(e.target.value, i)}
-              className="relative w-full aspect-square bg-slate-800 border-2 border-slate-700 rounded-2xl text-center text-xl md:text-2xl font-black text-white focus:outline-none focus:border-indigo-400 transition-all placeholder-slate-700"
-              placeholder={(i+1).toString()}
+              className="w-12 h-12 bg-slate-800 border border-slate-600 rounded-lg text-center text-lg font-bold text-white focus:outline-none focus:border-indigo-400 focus:bg-slate-700 transition-all placeholder-slate-700"
+              placeholder="00"
             />
-          </div>
-        ))}
+          ))}
+          <button onClick={clearBet} className="ml-2 p-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors" title="Limpar">
+            <RefreshCcw size={18}/>
+          </button>
+        </div>
       </div>
 
-      {/* Resultados da Análise */}
+      {/* Resultados em Grid Compacto (Ordem Ajustada) */}
       {analysis ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 animate-in fade-in slide-in-from-top-2">
           
-          {/* Card SOMA */}
-          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 uppercase font-bold">Soma</span>
-            <div className="flex items-end gap-2 mt-1 mb-2">
-              <span className="text-2xl font-black text-white">{analysis.soma}</span>
+          {/* 1. SOMA */}
+          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Soma</span>
+            <div>
+              <span className="text-xl font-black text-white block">{analysis.soma}</span>
+              <div className="mt-1"><StatusBadge status={analysis.somaStatus} text={analysis.somaStatus === 'safe' ? "Ideal" : "Extremo"} /></div>
             </div>
-            <StatusBadge status={analysis.somaStatus} labelSafe="Dentro da média" labelRisk="Muito Extremo" />
           </div>
 
-          {/* Card PARES */}
-          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 uppercase font-bold">Pares / Ímpares</span>
-            <div className="flex items-end gap-2 mt-1 mb-2">
-              <span className="text-2xl font-black text-white">{analysis.pares}P</span>
-              <span className="text-lg font-bold text-slate-500">/ {6 - analysis.pares}Í</span>
+          {/* 2. PARES */}
+          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Par / Ímpar</span>
+            <div>
+              <span className="text-xl font-black text-white block">{analysis.pares}P / {6-analysis.pares}Í</span>
+              <div className="mt-1"><StatusBadge status={analysis.parStatus} text={analysis.parStatus === 'safe' ? "Equilibrado" : "Desbalanço"} /></div>
             </div>
-            <StatusBadge status={analysis.parStatus} labelSafe="Equilibrado" labelRisk="Desbalanceado" />
           </div>
 
-          {/* Card PRIMOS/FIB */}
-          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 uppercase font-bold">Primos & Fib</span>
-            <div className="flex flex-col gap-2 mt-2">
-               <div className="flex justify-between items-center">
-                 <span className="text-sm text-slate-300">{analysis.qtdPrimos} Primos</span>
-                 <StatusBadge status={analysis.primoStatus} labelSafe="OK" labelRisk="Excesso" />
+          {/* 3. LINHAS/COLUNAS (Movido para cá) */}
+          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Vazios</span>
+            <div className="space-y-1 mt-1">
+               <div className="flex justify-between items-center text-xs">
+                 <span>{analysis.emptyLines} L. Vazias</span>
+                 <span className={`w-2 h-2 rounded-full ${analysis.lineStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                </div>
-               <div className="flex justify-between items-center">
-                 <span className="text-sm text-slate-300">{analysis.qtdFib} Fibon.</span>
-                 <StatusBadge status={analysis.fibStatus} labelSafe="OK" labelRisk="Excesso" />
+               <div className="flex justify-between items-center text-xs">
+                 <span>{analysis.emptyCols} C. Vazias</span>
+                 <span className={`w-2 h-2 rounded-full ${analysis.colStatus === 'safe' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                </div>
             </div>
           </div>
 
-          {/* Card TERMÔMETRO (Informativo) */}
-          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
-            <span className="text-xs text-slate-400 uppercase font-bold">Temperatura</span>
-            <div className="mt-2 space-y-1">
-              {analysis.hotColdAnalysis.length === 0 ? (
-                 <span className="text-sm text-slate-500 italic">Nenhum destaque quente/frio. Jogo neutro.</span>
-              ) : (
-                analysis.hotColdAnalysis.map((hc, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-xs">
+           {/* 4. QUADRANTES (Movido para cá) */}
+           <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Quadrantes</span>
+            <div>
+              <span className="text-xl font-black text-white block">{4 - analysis.emptyQuads} Usados</span>
+              <div className="mt-1"><StatusBadge status={analysis.quadStatus} text={analysis.quadStatus === 'safe' ? "1 Vazio (Ideal)" : "Sem Vazio"} /></div>
+            </div>
+          </div>
+
+          {/* 5. ESPECIAIS (Movido para cá) */}
+          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Especiais</span>
+            <div className="space-y-1 mt-1">
+               <div className="flex justify-between items-center text-xs">
+                 <span>{analysis.qtdPrimos} Primos</span>
+                 <span className={`w-2 h-2 rounded-full ${analysis.primoStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+               </div>
+               <div className="flex justify-between items-center text-xs">
+                 <span>{analysis.qtdFib} Fibon.</span>
+                 <span className={`w-2 h-2 rounded-full ${analysis.fibStatus === 'safe' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+               </div>
+            </div>
+          </div>
+
+          {/* 6. TEMPERATURA */}
+          <div className="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 flex flex-col justify-start overflow-y-auto max-h-[100px]">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1 block">Temperatura</span>
+            {analysis.hotColdAnalysis.length === 0 ? (
+               <span className="text-xs text-slate-500">Neutro.</span>
+            ) : (
+              <div className="space-y-1">
+                {analysis.hotColdAnalysis.map((hc, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs bg-slate-900/50 p-1 rounded">
+                    <span className="font-bold text-white">#{String(hc.num).padStart(2,'0')}</span>
                     {hc.type === 'hot' 
-                      ? <><Flame size={12} className="text-rose-500"/> <span className="text-rose-300">Quente ({hc.val}x)</span></>
-                      : <><Snowflake size={12} className="text-cyan-500"/> <span className="text-cyan-300">Frio ({hc.val}j)</span></>
+                      ? <span className="text-rose-400 font-bold flex items-center gap-1"><Flame size={10}/> Quente</span>
+                      : <span className="text-cyan-400 font-bold flex items-center gap-1"><Snowflake size={10}/> Frio</span>
                     }
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
       ) : (
-        <div className="text-center py-8 bg-slate-800/30 rounded-2xl border border-slate-800 border-dashed">
-          <Wand2 className="mx-auto text-slate-600 mb-2" size={32} />
-          <p className="text-slate-500 text-sm">Preencha os 6 números acima para simular a qualidade estatística.</p>
+        <div className="text-center py-4 bg-slate-800/30 rounded-xl border border-slate-700 border-dashed flex items-center justify-center gap-2">
+          <Wand2 className="text-slate-600" size={18} />
+          <p className="text-slate-500 text-sm font-medium">Preencha os 6 números para validar.</p>
         </div>
       )}
-
     </div>
   );
 };
@@ -325,7 +367,7 @@ const ChecklistValidator = () => {
                   Use <b>no máximo 1 número quente</b> (pra surfar a onda) e/ou <b>no máximo 1 número frio</b> (pra tentar a quebra). O resto do jogo deve ser de números neutros.
                 </span>
               </li>
-              
+
             </ul>
           </div>
 
@@ -1040,9 +1082,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* --- NOVO: SIMULADOR DE APOSTA --- */}
-        {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
-        <BetSimulator termometroData={stats.termometro} />
 
         {/* 1. SOMA & SIGMA */}
         <ChartSoma data={stats.soma} />
@@ -1064,6 +1103,10 @@ export default function Dashboard() {
 
         {/* 7. CHECKLIST FINAL  */}
         <ChecklistValidator />
+
+        {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
+        <BetSimulator termometroData={stats.termometro} />
+
 
       </main>
 
