@@ -676,9 +676,8 @@ const ChartPrimosFib = ({ dataPrimos, dataFib }) => {
     </div>
   );
 };
-
 /** * =================================================================================
- * [GRÁFICO 4] QUADRANTES + COORDENADAS (L/C) - VERSÃO FINAL
+ * [GRÁFICO 4] QUADRANTES + COORDENADAS (L/C) - VERSÃO AMPLIADA
  * =================================================================================
  */
 const ChartQuadrantes = ({ dataAssinatura }) => {
@@ -690,37 +689,48 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
     };
 
     const colors = {
-      1: 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]',
-      2: 'bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.6)]',
-      3: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]',
+      1: 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.4)]',
+      2: 'bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.4)]',
+      3: 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]',
       4: 'bg-slate-600'
     };
 
     return (
-      <div className="relative p-8 bg-slate-800/50 rounded-3xl border border-slate-700/50 backdrop-blur-sm mt-6">
-        {/* Labels de Colunas (Top) */}
-        <div className="absolute top-2 left-10 right-6 flex justify-between px-1">
+      // Aumentei a largura máxima e removi paddings desnecessários
+      <div className="relative w-full max-w-2xl mx-auto p-4 sm:p-6 bg-slate-800/40 rounded-[32px] border border-slate-700/50 backdrop-blur-sm mt-4">
+        
+        {/* Labels de Colunas (Top) - Agora com larguras sincronizadas com o grid */}
+        <div className="flex mb-2 ml-8 pr-1"> 
           {Array.from({ length: 10 }, (_, i) => (
-            <span key={i} className="text-[9px] font-black text-slate-500 w-full text-center">C{i + 1}</span>
+            <span key={i} className="flex-1 text-[10px] font-black text-slate-500 text-center uppercase">
+              C{i + 1}
+            </span>
           ))}
         </div>
 
         <div className="flex">
           {/* Labels de Linhas (Left) */}
-          <div className="flex flex-col justify-between py-1 pr-3">
+          <div className="flex flex-col justify-between py-2 pr-4">
             {Array.from({ length: 6 }, (_, i) => (
-              <span key={i} className="text-[9px] font-black text-slate-500 h-full flex items-center">L{i + 1}</span>
+              <span key={i} className="text-[10px] font-black text-slate-500 flex items-center h-full">
+                L{i + 1}
+              </span>
             ))}
           </div>
 
-          {/* Grid do Volante */}
-          <div className="grid grid-cols-10 gap-2 flex-1">
+          {/* Grid do Volante - w-full e gap maior para preencher o espaço */}
+          <div className="grid grid-cols-10 gap-2 sm:gap-3 flex-1">
             {Array.from({ length: 60 }, (_, i) => i + 1).map(num => (
               <div
                 key={num}
-                className={`aspect-square rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-bold text-white transition-all hover:scale-125 hover:z-20 cursor-default ${colors[getQuad(num)]}`}
+                className={`
+                  aspect-square rounded-xl flex items-center justify-center 
+                  text-xs sm:text-sm font-bold text-white transition-all 
+                  hover:scale-110 hover:z-20 cursor-default
+                  ${colors[getQuad(num)]}
+                `}
               >
-                {num}
+                {num.toString().padStart(2, '0')}
               </div>
             ))}
           </div>
@@ -730,24 +740,24 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
   };
 
   return (
-    <div className="bg-white p-10 rounded-[40px] shadow-sm border border-slate-100 mb-16">
-      <div className="flex flex-col lg:flex-row gap-12">
+    <div className="bg-white p-6 sm:p-12 rounded-[40px] shadow-sm border border-slate-100 mb-16">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
 
-        {/* Lado Esquerdo: Quadrantes */}
-        <div className="lg:w-1/3 flex flex-col justify-center">
-          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter">
+        {/* Lado Esquerdo: Quadrantes (Ajustado para ocupar menos largura no desktop) */}
+        <div className="lg:w-[35%] flex flex-col justify-center">
+          <h3 className="text-3xl font-black text-slate-800 mb-4 uppercase tracking-tighter leading-none">
             Distribuição de <br /><span className="text-indigo-600">Quadrantes</span>
           </h3>
 
           <p className="text-slate-600 mb-6 leading-relaxed text-sm">
-            A sorte na Mega-Sena costuma seguir dois caminhos principais: ou ela se espalha com <b>equilíbrio total (2-2-1-1)</b>, ou ela se concentra levemente deixando um <b>espaço vazio (3-2-1-0)</b>.
+            A sorte na Mega-Sena costuma seguir dois caminhos: <b>equilíbrio total (2-2-1-1)</b> ou <b>vácuo estratégico (3-2-1-0)</b>.
           </p>
 
-          <div className="space-y-5 mb-8">
+          <div className="space-y-4 mb-8">
             {dataAssinatura.map((item, i) => (
               <div key={i} className="flex items-center justify-between group">
-                <span className="text-xs font-bold text-slate-500 w-16 tracking-tighter">{item.name}</span>
-                <div className="flex-1 mx-3 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                <span className="text-[10px] font-bold text-slate-400 w-16 uppercase tracking-widest">{item.name}</span>
+                <div className="flex-1 mx-3 h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-500 transition-all duration-700" style={{ width: `${item.percent}%` }} />
                 </div>
                 <span className="text-xs font-black text-indigo-600 w-10 text-right">{item.percent}%</span>
@@ -755,31 +765,31 @@ const ChartQuadrantes = ({ dataAssinatura }) => {
             ))}
           </div>
 
-          <div className="bg-indigo-50 p-5 rounded-2xl border border-indigo-100">
-            <p className="text-sm text-indigo-900 leading-relaxed">
-              Juntos, esses modelos estão presentes em <b>65% dos sorteios</b>. Conhecer essa dinâmica ajuda você a decidir: quer seguir a tendência mais frequente ou prefere apostar nos outros 35%?
+          <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+            <p className="text-[13px] text-slate-600 leading-relaxed">
+              Esses modelos representam <b>65% dos sorteios</b>. Use o mapa ao lado para distribuir suas dezenas seguindo esses padrões.
             </p>
           </div>
         </div>
 
-        {/* Lado Direito: O Volante com Coordenadas */}
-        <div className="lg:w-2/3 bg-slate-900 rounded-[32px] p-8 text-white flex flex-col items-center justify-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-indigo-500/10 via-slate-900 to-slate-900 pointer-events-none"></div>
+        {/* Lado Direito: O Volante (Agora ocupando bem o espaço) */}
+        <div className="lg:flex-1 bg-slate-900 rounded-[40px] p-6 sm:p-10 text-white flex flex-col items-center justify-center relative overflow-hidden min-h-[500px]">
+          {/* Efeito de Glow de fundo */}
+          <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/10 blur-[120px] rounded-full"></div>
+          <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-pink-500/10 blur-[120px] rounded-full"></div>
 
-          <div className="relative z-10 w-full flex flex-col items-center">
-            <div className="flex flex-col items-center mb-6">
-              <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-indigo-400 mb-2">Mapa de Coordenadas</h4>
-              <div className="flex flex-wrap justify-center gap-4 text-[10px] font-bold uppercase text-slate-400">
-                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div> Q1</span>
-                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-pink-500 rounded-full"></div> Q2</span>
-                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div> Q3</span>
-                <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div> Q4</span>
+          <div className="relative z-10 w-full">
+            <div className="text-center mb-8">
+              <h4 className="text-sm font-bold uppercase tracking-[0.3em] text-indigo-400 mb-3">Mapa de Coordenadas</h4>
+              <div className="flex justify-center gap-6 text-[10px] font-black uppercase text-slate-500">
+                <span className="flex items-center gap-2"><div className="w-2 h-2 bg-indigo-500 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.8)]"></div> Q1</span>
+                <span className="flex items-center gap-2"><div className="w-2 h-2 bg-pink-500 rounded-full shadow-[0_0_8px_rgba(236,72,153,0.8)]"></div> Q2</span>
+                <span className="flex items-center gap-2"><div className="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div> Q3</span>
+                <span className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-500 rounded-full"></div> Q4</span>
               </div>
             </div>
 
             {renderMiniVolante()}
-
-
           </div>
         </div>
       </div>
@@ -1154,24 +1164,40 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-6 py-10">
 
         {/* INTRODUÇÃO */}
-        <div className="bg-indigo-900 rounded-3xl p-10 mb-12 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
-          <div className="absolute top-0 right-0 opacity-5 transform translate-x-12 -translate-y-12 pointer-events-none">
-            <Binary size={300} />
+        <div className="bg-indigo-900 rounded-[40px] p-10 mb-12 text-white shadow-2xl shadow-indigo-900/50 relative overflow-hidden">
+          {/* Ícone de Fundo - Movido para o canto INFERIOR direito */}
+          <div className="absolute bottom-0 right-0 opacity-[0.07] transform translate-x-1/4 translate-y-1/4 pointer-events-none">
+            <Binary size={400} />
           </div>
-          <div className="relative z-10 max-w-4xl">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-indigo-500/20 rounded-lg backdrop-blur-md border border-indigo-400/30">
-                <Sparkles size={24} className="text-amber-300" />
-              </div>
-              <h2 className="text-3xl font-bold tracking-tight text-white">Quando seis números se encontram, a aleatoriedade muda de forma.</h2>
-            </div>
-            <div className="space-y-4 text-indigo-50 text-lg leading-relaxed">
-              <p>Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.</p>
-              <p>O que esta análise investiga é outra coisa: <b>como os conjuntos de seis números se comportam ao longo do tempo.</b></p>
-              <p>Foram analisados <b>{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.</p>
-              <p>Aqui, os dados não prometem prêmios.</p>
-              <p>Eles oferecem contexto.</p>
 
+          {/* Conteúdo de Texto - Ajustado max-w-3xl para leitura mais focada */}
+          <div className="relative z-10 max-w-3xl">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="p-3 bg-indigo-500/20 rounded-xl backdrop-blur-md border border-indigo-400/30 shadow-inner shadow-indigo-300/20">
+                <Sparkles size={28} className="text-amber-300" />
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">
+                Quando seis números se encontram, a aleatoriedade muda de forma.
+              </h2>
+            </div>
+            
+            <div className="space-y-6 text-indigo-100 text-lg leading-relaxed font-medium">
+              <p className="opacity-90">
+                Cada número da Mega-Sena tem exatamente a mesma chance de ser sorteado. Isso não está em debate.
+              </p>
+              <p>
+                O que esta análise investiga é outra coisa: <b className="text-amber-300 font-black">como os conjuntos de seis números se comportam ao longo do tempo.</b>
+              </p>
+              <p className="opacity-90">
+                Foram analisados <b className="text-white">{stats.total} concursos</b>, com foco em padrões estatísticos recorrentes e combinações extremamente raras. O intuito aqui não é prever o próximo sorteio, mas ajudar a evitar escolhas que historicamente quase não acontecem.
+              </p>
+              
+              <div className="pt-4 border-t border-indigo-800/50">
+                <p className="text-xl font-bold text-white">
+                  Aqui, os dados não prometem prêmios. <br/>
+                  <span className="text-indigo-300">Eles oferecem contexto.</span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
