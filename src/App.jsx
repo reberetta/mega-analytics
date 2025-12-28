@@ -4,7 +4,7 @@ import {
   AreaChart, Area, Cell, ReferenceLine, ReferenceArea, Label // <--- ADICIONEI O LABEL AQUI
 } from 'recharts';
 import {
-  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid
+  Activity, Info, Flame, Binary, Sparkles, Hash, Sigma, Grid3X3, LayoutGrid, Thermometer, Snowflake
 } from 'lucide-react';
 import rawData from './mega_sena_data.json';
 
@@ -479,6 +479,142 @@ const ChartLinhasColunas = ({ dataLines, dataCols }) => {
 };
 
 /** * =================================================================================
+ * [GRÁFICO 6] TERMÔMETRO (QUENTES E FRIAS) - ALTO CONTRASTE
+ * =================================================================================
+ */
+const ChartTermometro = ({ data }) => {
+  // Ordenações para os Top Lists da esquerda
+  const topQuentes = [...data].sort((a, b) => b.freqLast20 - a.freqLast20).slice(0, 5);
+  const topFrias = [...data].sort((a, b) => b.lag - a.lag).slice(0, 5);
+
+  // --- ESTILIZAÇÃO AGRESSIVA DE ALTO CONTRASTE ---
+  const getNumberStyle = (stat) => {
+    // 🔥 PEGANDO FOGO (>= 3 vezes nos últimos 20)
+    // Gradiente vibrante, texto branco grosso, sombra brilhante e aumento de escala
+    if (stat.freqLast20 >= 3) {
+        return "bg-gradient-to-br from-orange-500 to-red-600 text-white font-black shadow-lg shadow-red-500/50 scale-110 z-10 border-2 border-white/30";
+    }
+    
+    // ❄️ CONGELADO (>= 15 jogos de atraso)
+    // Gradiente gelo vibrante, texto branco grosso, sombra brilhante e aumento de escala
+    if (stat.lag >= 15) {
+         return "bg-gradient-to-br from-cyan-400 to-blue-600 text-white font-black shadow-lg shadow-cyan-500/50 scale-110 z-10 border-2 border-white/30";
+    }
+
+    // 🌑 NEUTRO (O resto)
+    // Cinza escuro, quase sumindo no fundo, sem destaque
+    return "bg-slate-800/40 text-slate-600 font-medium border border-slate-700/20";
+  };
+
+  return (
+    <div className="bg-white p-8 rounded-[40px] shadow-sm border border-slate-100 mb-16">
+      
+      <SectionHeader 
+        title="Termômetro dos Números" 
+        subtitle="Foco total nos extremos: veja apenas o que está 'pegando fogo' ou 'congelado'. O resto é ruído."
+        icon={Thermometer}
+        colorClass="text-rose-600"
+      />
+
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-12 mt-8">
+        
+        {/* --- COLUNA DA ESQUERDA: LISTAS TOP 5 (DADOS EXATOS) --- */}
+        <div className="space-y-8">
+          
+          {/* TOP QUENTES */}
+          <div className="bg-rose-50 p-6 rounded-3xl border border-rose-100">
+            <div className="flex items-center gap-2 mb-4">
+              <Flame className="text-rose-500" size={20} />
+              <h4 className="font-bold text-rose-900">Top 5: Pegando Fogo 🔥</h4>
+              <span className="text-[10px] text-rose-400 ml-auto">(Últimos 20 jogos)</span>
+            </div>
+            <div className="space-y-3">
+              {topQuentes.map(stat => (
+                <div key={stat.num} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-rose-100/50">
+                  <span className="text-xl font-black text-slate-700 w-10">{String(stat.num).padStart(2, '0')}</span>
+                  {/* Barra de progresso visual */}
+                  <div className="flex-1 mx-3 bg-rose-100 h-3 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-rose-400 to-red-500" 
+                        style={{ width: `${Math.min((stat.freqLast20 / 5) * 100, 100)}%` }} // Base 5 para encher a barra
+                    />
+                  </div>
+                  <span className="text-sm font-bold text-rose-600">{stat.freqLast20}x</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* TOP FRIAS */}
+          <div className="bg-cyan-50 p-6 rounded-3xl border border-cyan-100">
+            <div className="flex items-center gap-2 mb-4">
+              <Snowflake className="text-cyan-500" size={20} />
+              <h4 className="font-bold text-cyan-900">Top 5: Congeladas ❄️</h4>
+              <span className="text-[10px] text-cyan-400 ml-auto">(Maior Atraso)</span>
+            </div>
+            <div className="space-y-3">
+              {topFrias.map(stat => (
+                <div key={stat.num} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-cyan-100/50">
+                  <span className="text-xl font-black text-slate-700 w-10">{String(stat.num).padStart(2, '0')}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-sm font-black text-cyan-600">{stat.lag} <span className="text-[10px] font-bold uppercase">jogos</span></span>
+                    <span className="text-[9px] text-cyan-400 uppercase font-bold">de atraso</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+        {/* --- COLUNA DA DIREITA: MAPA DE CALOR (VISUAL AGRESSIVO) --- */}
+        <div className="xl:col-span-2">
+          <div className="bg-slate-950 p-8 rounded-[36px] shadow-2xl shadow-slate-900/50 text-center h-full flex flex-col justify-center relative overflow-hidden">
+             {/* Efeito de fundo sutil */}
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-800/20 via-slate-950 to-slate-950 pointer-events-none"></div>
+             
+             <h4 className="text-white/60 font-bold mb-8 uppercase tracking-[0.2em] text-xs relative z-10">Mapa de Calor do Volante</h4>
+             
+             <div className="grid grid-cols-10 gap-2 mx-auto max-w-2xl relative z-10 p-4 bg-slate-900/50 rounded-2xl border border-slate-800/50 backdrop-blur-sm">
+                {data.map((stat) => (
+                  <div 
+                    key={stat.num} 
+                    // AQUI A MÁGICA ACONTECE: Aplica o estilo agressivo
+                    className={`aspect-square rounded-xl flex flex-col items-center justify-center transition-all duration-300 cursor-help group relative ${getNumberStyle(stat)}`}
+                  >
+                    <span className="text-sm md:text-base">{stat.num}</span>
+                    
+                    {/* TOOLTIP DO HOVER */}
+                    <div className="absolute bottom-full mb-3 hidden group-hover:block w-max min-w-[120px] bg-slate-800 text-white text-[10px] p-3 rounded-xl z-20 shadow-xl border border-slate-700 pointer-events-none -translate-x-1/2 left-1/2 text-left">
+                      <p className="font-black text-sm mb-2 text-slate-200">Número {String(stat.num).padStart(2,'0')}</p>
+                      <div className="space-y-1">
+                        <p className="flex justify-between"><span>Últimos 20:</span> <b className={stat.freqLast20 >=3 ? "text-red-400" : "text-slate-400"}>{stat.freqLast20}x</b></p>
+                        <p className="flex justify-between"><span>Atraso:</span> <b className={stat.lag >=15 ? "text-cyan-400" : "text-slate-400"}>{stat.lag} jogos</b></p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+             </div>
+
+             <div className="flex justify-center gap-8 mt-8 relative z-10">
+                <div className="flex items-center gap-2 bg-red-950/30 px-3 py-1 rounded-full border border-red-900/50">
+                  <div className="w-2 h-2 bg-red-500 rounded-full shadow shadow-red-500"></div>
+                  <span className="text-[10px] font-bold text-red-300 uppercase">Quente (3+ em 20)</span>
+                </div>
+                <div className="flex items-center gap-2 bg-cyan-950/30 px-3 py-1 rounded-full border border-cyan-900/50">
+                  <div className="w-2 h-2 bg-cyan-500 rounded-full shadow shadow-cyan-500"></div>
+                  <span className="text-[10px] font-bold text-cyan-300 uppercase">Fria (15+ atraso)</span>
+                </div>
+             </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
+/** * =================================================================================
  * [MAIN] DASHBOARD PRINCIPAL
  * =================================================================================
  */
@@ -494,47 +630,63 @@ export default function Dashboard() {
   // --- ENGINE DE CÁLCULOS ---
   const stats = useMemo(() => {
     if (!filteredData || filteredData.length === 0) {
-      return { soma: [], primos: [], fib: [], assinatura: [], pares: [], lines: [], cols: [], probPares: 0, total: 0 };
+        return { soma: [], primos: [], fib: [], assinatura: [], pares: [], lines: [], cols: [], termometro: [], probPares: 0, total: 0 };
     }
 
     const total = filteredData.length;
-    const distSoma = {};
+    // ... (Seus acumuladores anteriores: distSoma, distPrimos, etc. MANTENHA-OS AQUI) ...
+    const distSoma = {}; 
     const distPrimos = {};
     const distFib = {};
     const distAssinatura = {};
-    const distPares = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-
-    // NOVOS ACUMULADORES
     const distLines = {};
     const distCols = {};
+    const distPares = { 0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0 };
 
+    // 1. Loop Principal (Para gráficos gerais)
     filteredData.forEach(g => {
-      // 1. Soma
+      // ... (MANTENHA A LÓGICA EXISTENTE DE SOMA, PRIMOS, ETC) ...
       const bSoma = Math.floor(g.analises.soma / 10) * 10;
       distSoma[bSoma] = (distSoma[bSoma] || 0) + 1;
-
-      // 2. Primos/Fib/Assinatura (Usando seus dados prontos)
       distPrimos[g.analises.primos] = (distPrimos[g.analises.primos] || 0) + 1;
       distFib[g.analises.fibonacci] = (distFib[g.analises.fibonacci] || 0) + 1;
       distAssinatura[g.analises.quadrantes.assinatura] = (distAssinatura[g.analises.quadrantes.assinatura] || 0) + 1;
-
-      // 3. Pares
       const p = g.analises.pares;
       if (distPares[p] !== undefined) distPares[p]++;
-
-      // 4. LINHAS E COLUNAS (LENDO DIRETO DO JSON)
-      const lv = g.analises.linhas_vazias;
-      distLines[lv] = (distLines[lv] || 0) + 1;
-
-      const cv = g.analises.colunas_vazias;
-      distCols[cv] = (distCols[cv] || 0) + 1;
+      distLines[g.analises.linhas_vazias] = (distLines[g.analises.linhas_vazias] || 0) + 1;
+      distCols[g.analises.colunas_vazias] = (distCols[g.analises.colunas_vazias] || 0) + 1;
     });
 
-    const format = (obj) => Object.entries(obj).map(([name, value]) => ({
-      name, value, percent: ((value / total) * 100).toFixed(1)
+    // --- NOVO: LÓGICA DE NÚMEROS QUENTES E FRIOS ---
+    // Cria array de 1 a 60
+    const numbersStats = Array.from({ length: 60 }, (_, i) => {
+        const num = i + 1;
+        return { num, freqLast20: 0, lag: 0, lastSeen: null };
+    });
+
+    // A. Frequência nos Últimos 20 Jogos
+    // (Assumindo que filteredData[0] é o jogo mais recente. Se não for, inverta o slice)
+    const last20Games = filteredData.slice(0, 20); 
+    last20Games.forEach(g => {
+        g.dezenas.forEach(d => {
+            const n = parseInt(d);
+            if (numbersStats[n-1]) numbersStats[n-1].freqLast20++;
+        });
+    });
+
+    // B. Cálculo do Atraso (Lag) - Varre todos os jogos até achar
+    // Como filteredData está ordenado do mais novo para o antigo (conforme seus exemplos):
+    numbersStats.forEach(stat => {
+        // Encontra o índice do primeiro jogo onde o número aparece
+        const lastIndex = filteredData.findIndex(g => g.dezenas.includes(stat.num)); // ou inclui a string "01"
+        // Se achou, o atraso é o índice. Se não achou nunca, atraso é o total.
+        stat.lag = lastIndex === -1 ? total : lastIndex;
+    });
+
+    const format = (obj) => Object.entries(obj).map(([name, value]) => ({ 
+      name, value, percent: ((value / total) * 100).toFixed(1) 
     })).sort((a, b) => Number(a.name) - Number(b.name));
 
-    // Cálculo Probabilidade Pares (2, 3 ou 4)
     const totalSeguro = (distPares[2] || 0) + (distPares[3] || 0) + (distPares[4] || 0);
     const probPares = ((totalSeguro / total) * 100).toFixed(1);
 
@@ -542,10 +694,11 @@ export default function Dashboard() {
       soma: format(distSoma),
       primos: format(distPrimos),
       fib: format(distFib),
-      assinatura: format(distAssinatura).sort((a, b) => b.value - a.value).slice(0, 5),
+      assinatura: format(distAssinatura).sort((a,b) => b.value - a.value).slice(0, 5),
       pares: format(distPares),
-      lines: format(distLines), // <--- Retorna processado
-      cols: format(distCols),   // <--- Retorna processado
+      lines: format(distLines),
+      cols: format(distCols),
+      termometro: numbersStats, // <--- DADOS PRONTOS PARA O NOVO COMPONENTE
       probPares,
       total
     };
@@ -617,6 +770,9 @@ export default function Dashboard() {
 
         {/* 4. LINHAS E COLUNAS (NOVO) */}
         <ChartLinhasColunas dataLines={stats.lines} dataCols={stats.cols} />
+
+        {/* 5. TERMÔMETRO (NOVO) */}
+        <ChartTermometro data={stats.termometro} />
 
         {/* 4. QUADRANTES */}
         <ChartQuadrantes dataAssinatura={stats.assinatura} />
