@@ -52,59 +52,123 @@ const SectionHeader = ({ title, subtitle, icon: Icon, colorClass = "text-slate-8
 );
 
 /** * =================================================================================
- * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO)
+ * [GRÁFICO 1] SOMA COM SIGMA (DESVIO PADRÃO) - ATUALIZADO
  * =================================================================================
  */
 const ChartSoma = ({ data }) => {
+  // Constantes Estatísticas da Mega Sena
   const MEDIA = 183;
-  const SIGMA_1_MIN = 143; const SIGMA_1_MAX = 223;
-  const SIGMA_2_MIN = 103; const SIGMA_2_MAX = 263;
+  const SIGMA_1_MIN = 143; 
+  const SIGMA_1_MAX = 223;
+  const SIGMA_2_MIN = 103; 
+  const SIGMA_2_MAX = 263;
+
+  // Ticks para forçar o Eixo X a mostrar exatamente esses números
+  const boundaryTicks = [SIGMA_2_MIN, SIGMA_1_MIN, MEDIA, SIGMA_1_MAX, SIGMA_2_MAX];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16 border-b border-slate-100 pb-16">
       <div className="lg:col-span-1">
         <SectionHeader 
           title="A Curva Normal (Sigma)" 
-          subtitle="Aplicamos a regra dos Desvios Padrões (σ) para identificar as zonas de segurança matemática."
+          subtitle="Visualize instantaneamente onde está a segurança matemática do jogo."
           icon={Sigma}
           colorClass="text-indigo-900"
         />
-        <div className="space-y-3 mt-4">
-          <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider block mb-1">Zona Segura (1σ)</span>
-            <p className="text-xs text-emerald-600 leading-tight">
-              Somas entre <b>{SIGMA_1_MIN} e {SIGMA_1_MAX}</b>. A grande maioria dos sorteios acontece aqui.
-            </p>
+        <div className="space-y-4 mt-6">
+          {/* Legenda Lateral Auxiliar */}
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded bg-emerald-500/20 border border-emerald-500"></div>
+            <div>
+              <span className="text-xs font-bold text-slate-700">Zona Segura (68.2%)</span>
+              <p className="text-[10px] text-slate-400">Entre {SIGMA_1_MIN} e {SIGMA_1_MAX}</p>
+            </div>
           </div>
-          <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-             <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-1">Zona de Alerta (2σ)</span>
-            <p className="text-xs text-amber-600 leading-tight">
-              Somas entre <b>{SIGMA_2_MIN} e {SIGMA_2_MAX}</b>. Ainda comuns, mas menos frequentes.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded bg-amber-500/20 border border-amber-500"></div>
+            <div>
+              <span className="text-xs font-bold text-slate-700">Zona de Alerta (13.6%)</span>
+              <p className="text-[10px] text-slate-400">Entre {SIGMA_2_MIN}-{SIGMA_1_MIN} e {SIGMA_1_MAX}-{SIGMA_2_MAX}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded bg-rose-500/20 border border-rose-500"></div>
+            <div>
+              <span className="text-xs font-bold text-slate-700">Zona de Risco (2.1%)</span>
+              <p className="text-[10px] text-slate-400">Abaixo de {SIGMA_2_MIN} ou acima de {SIGMA_2_MAX}</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-[380px]">
+      <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 h-[420px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
+          <AreaChart data={data} margin={{ top: 20, right: 10, left: 0, bottom: 20 }}>
             <defs>
               <linearGradient id="colorSoma" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8}/>
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.9}/>
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0.1}/>
               </linearGradient>
             </defs>
+            
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis dataKey="name" tick={{fontSize: 10}} minTickGap={20} />
+            
+            {/* Eixo X configurado para mostrar os limites exatos */}
+            <XAxis 
+              dataKey="name" 
+              type="number" 
+              domain={['dataMin', 'dataMax']} 
+              ticks={boundaryTicks}
+              tick={{fontSize: 11, fontWeight: 'bold', fill: '#64748b'}} 
+              tickFormatter={(val) => val}
+              interval={0}
+            />
             <YAxis hide />
             <Tooltip content={<CustomTooltip prefix="Soma:" />} />
+
+            {/* --- ÁREAS DE FUNDO COLORIDAS (ZONAS) --- */}
             
-            <ReferenceArea x1={SIGMA_2_MIN} x2={SIGMA_2_MAX} fill="#fcd34d" fillOpacity={0.15} ifOverflow="extendDomain"/>
-            <ReferenceArea x1={SIGMA_1_MIN} x2={SIGMA_1_MAX} fill="#10b981" fillOpacity={0.2} ifOverflow="extendDomain"/>
+            {/* 1. ZONA EXTREMA (Esquerda) - Risco */}
+            <ReferenceArea x1={0} x2={SIGMA_2_MIN} fill="#f43f5e" fillOpacity={0.08}>
+               <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10}/>
+            </ReferenceArea>
+            
+            {/* 2. ZONA INTERMEDIÁRIA (Esquerda) - Alerta */}
+            <ReferenceArea x1={SIGMA_2_MIN} x2={SIGMA_1_MIN} fill="#f59e0b" fillOpacity={0.12}>
+               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold"/>
+            </ReferenceArea>
+
+            {/* 3. ZONA CENTRAL (Média) - Segura */}
+            <ReferenceArea x1={SIGMA_1_MIN} x2={SIGMA_1_MAX} fill="#10b981" fillOpacity={0.15}>
+               <Label value="68.2%" position="top" fill="#059669" fontSize={16} fontWeight="900" dy={20}/>
+            </ReferenceArea>
+
+            {/* 4. ZONA INTERMEDIÁRIA (Direita) - Alerta */}
+            <ReferenceArea x1={SIGMA_1_MAX} x2={SIGMA_2_MAX} fill="#f59e0b" fillOpacity={0.12}>
+               <Label value="13.6%" position="center" fill="#d97706" fontSize={12} fontWeight="bold"/>
+            </ReferenceArea>
+
+            {/* 5. ZONA EXTREMA (Direita) - Risco */}
+            <ReferenceArea x1={SIGMA_2_MAX} x2={400} fill="#f43f5e" fillOpacity={0.08}>
+               <Label value="2.1%" position="insideBottom" fill="#f43f5e" fontSize={12} fontWeight="bold" offset={10}/>
+            </ReferenceArea>
+
+            {/* Linhas verticais para marcar os limites exatos */}
+            <ReferenceLine x={MEDIA} stroke="#6366f1" strokeDasharray="3 3" opacity={0.5} />
             <ReferenceLine x={SIGMA_1_MIN} stroke="#10b981" strokeDasharray="2 2" />
             <ReferenceLine x={SIGMA_1_MAX} stroke="#10b981" strokeDasharray="2 2" />
-            
-            <Area type="monotone" dataKey="value" stroke="#6366f1" strokeWidth={3} fill="url(#colorSoma)" animationDuration={1000}/>
+            <ReferenceLine x={SIGMA_2_MIN} stroke="#f59e0b" strokeDasharray="2 2" />
+            <ReferenceLine x={SIGMA_2_MAX} stroke="#f59e0b" strokeDasharray="2 2" />
+
+            {/* O Gráfico de Dados por cima de tudo */}
+            <Area 
+              type="monotone" 
+              dataKey="value" 
+              stroke="#6366f1" 
+              strokeWidth={3} 
+              fill="url(#colorSoma)" 
+              animationDuration={1500}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
