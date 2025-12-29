@@ -217,23 +217,38 @@ const BetSimulator = ({ termometroData }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-4 w-full">
+          {/* Container das dezenas - flex-wrap para garantir que os inputs não estourem em telas minúsculas */}
+          <div className="flex flex-wrap justify-center gap-2">
             {bet.map((val, i) => (
               <input
-                key={i} type="number" value={val}
+                key={i}
+                type="number"
+                value={val}
                 onChange={(e) => handleInput(e.target.value, i)}
                 className="w-11 h-11 bg-slate-800 border border-slate-600 rounded-lg text-center text-lg font-bold text-white focus:border-indigo-400 transition-all outline-none"
                 placeholder="00"
               />
             ))}
           </div>
-          <div className="flex gap-1 ml-2">
-            <button onClick={generateRandomBet} className="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all" title="Gerar Jogo Aleatório">
+
+          {/* Container dos Botões - w-full no mobile para facilitar o clique, sm:w-auto no desktop */}
+          <div className="flex gap-2 w-full sm:w-auto justify-center sm:ml-2">
+            <button
+              onClick={generateRandomBet}
+              className="flex-1 sm:flex-none p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all flex justify-center items-center"
+              title="Gerar Jogo Aleatório"
+            >
               <Wand2 size={18} />
+              <span className="sm:hidden ml-2 text-xs font-bold uppercase">Aleatório</span>
             </button>
-            <button onClick={clearBet} className="p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-all" title="Limpar Jogo">
+            <button
+              onClick={clearBet}
+              className="flex-1 sm:flex-none p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-all flex justify-center items-center"
+              title="Limpar Jogo"
+            >
               <Trash2 size={18} />
+              <span className="sm:hidden ml-2 text-xs font-bold uppercase">Limpar</span>
             </button>
           </div>
         </div>
@@ -1028,17 +1043,17 @@ const ChartParImpar = ({ data, probSegura }) => {
 
 const SimulatorIntro = () => (
   /* Removi o max-w-4xl e usei w-full para seguir o container pai */
-  <div className="w-full mb-10"> 
+  <div className="w-full mb-10">
     <h2 className="text-2xl font-black text-slate-800 mb-4 tracking-tighter uppercase">
       Sua Estratégia, <span className="text-indigo-600">Validada por Dados</span>
     </h2>
-    
+
     {/* Usei um grid simples aqui para que em telas grandes o texto e o aviso fiquem lado a lado, 
         evitando que o parágrafo fique com linhas longas demais para ler */}
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
       <div className="lg:col-span-2">
         <p className="text-slate-600 leading-relaxed text-base">
-          Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer? 
+          Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer?
           Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história da Mega-Sena.
         </p>
       </div>
