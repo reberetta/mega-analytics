@@ -1048,8 +1048,7 @@ const SimulatorIntro = () => (
           <AlertCircle size={20} />
         </div>
         <p className="text-[12px] text-amber-900/80 leading-tight">
-          <strong>Nota de Transparência:</strong> Ferramenta analítica baseada em tendências. 
-          Padrões ajudam a entender o comportamento histórico, mas <strong>não garantem prêmios</strong>.
+          <strong>Atenção:</strong> Ferramenta analítica baseada em tendências. Padrões ajudam a entender o comportamento histórico, mas <strong>não garantem prêmios</strong>.
         </p>
       </div>
     </div>
