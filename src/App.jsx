@@ -1186,7 +1186,7 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-xl font-black tracking-tight text-slate-800 uppercase">Reberetta <span className="text-indigo-600">Analytics</span></h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega Sena Data Insights</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Mega-Sena Data Insights</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
