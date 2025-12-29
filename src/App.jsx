@@ -1026,25 +1026,32 @@ const ChartParImpar = ({ data, probSegura }) => {
   );
 };
 
-
 const SimulatorIntro = () => (
-  <div className="max-w-4xl mb-8">
-    <h2 className="text-2xl font-bold text-slate-800 mb-3">
+  /* Removi o max-w-4xl e usei w-full para seguir o container pai */
+  <div className="w-full mb-10"> 
+    <h2 className="text-2xl font-black text-slate-800 mb-4 tracking-tighter uppercase">
       Sua Estratégia, <span className="text-indigo-600">Validada por Dados</span>
     </h2>
-    <p className="text-slate-600 leading-relaxed mb-4">
-      Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer?
-      Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história.
-    </p>
-
-    <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-      <div className="text-amber-600 shrink-0">
-        <AlertCircle size={20} />
+    
+    {/* Usei um grid simples aqui para que em telas grandes o texto e o aviso fiquem lado a lado, 
+        evitando que o parágrafo fique com linhas longas demais para ler */}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="lg:col-span-2">
+        <p className="text-slate-600 leading-relaxed text-base">
+          Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer? 
+          Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história da Mega-Sena.
+        </p>
       </div>
-      <p className="text-[13px] text-amber-800 leading-tight">
-        <strong>Atenção:</strong> Esta ferramenta é de apoio analítico. Padrões estatísticos ajudam a entender tendências,
-        mas não garantem prêmios ou preveem resultados, pois cada sorteio é um evento independente.
-      </p>
+
+      <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl shadow-sm">
+        <div className="text-amber-600 shrink-0">
+          <AlertCircle size={20} />
+        </div>
+        <p className="text-[12px] text-amber-900/80 leading-tight">
+          <strong>Nota de Transparência:</strong> Ferramenta analítica baseada em tendências. 
+          Padrões ajudam a entender o comportamento histórico, mas <strong>não garantem prêmios</strong>.
+        </p>
+      </div>
     </div>
   </div>
 );
