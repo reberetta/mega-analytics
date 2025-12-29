@@ -1155,8 +1155,9 @@ export default function Dashboard() {
               {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ JOGOS DA VIRADA'}
             </button> */}
             {/* <div className="h-8 w-[1px] bg-slate-100 mx-2" />
-            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>
-          </div> */}
+            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>*/} 
+          
+            </div> 
         </div>
       </header>
 

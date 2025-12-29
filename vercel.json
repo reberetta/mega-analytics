@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/projetos/megasena-analytics/(.*)",
+      "destination": "/projetos/megasena-analytics/index.html"
+    }
+  ]
+}
