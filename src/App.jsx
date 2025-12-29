@@ -1027,6 +1027,28 @@ const ChartParImpar = ({ data, probSegura }) => {
 };
 
 
+const SimulatorIntro = () => (
+  <div className="max-w-4xl mb-8">
+    <h2 className="text-2xl font-bold text-slate-800 mb-3">
+      Sua Estratégia, <span className="text-indigo-600">Validada por Dados</span>
+    </h2>
+    <p className="text-slate-600 leading-relaxed mb-4">
+      Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer?
+      Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história.
+    </p>
+
+    <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+      <div className="text-amber-600 shrink-0">
+        <AlertCircle size={20} />
+      </div>
+      <p className="text-[13px] text-amber-800 leading-tight">
+        <strong>Atenção:</strong> Esta ferramenta é de apoio analítico. Padrões estatísticos ajudam a entender tendências,
+        mas não garantem prêmios ou preveem resultados, pois cada sorteio é um evento independente.
+      </p>
+    </div>
+  </div>
+);
+
 /** * =================================================================================
  * [MAIN] DASHBOARD PRINCIPAL
  * =================================================================================
@@ -1155,9 +1177,9 @@ export default function Dashboard() {
               {filterVirada ? '✨ MODO VIRADA ATIVO' : 'MOSTRAR SÓ JOGOS DA VIRADA'}
             </button> */}
             {/* <div className="h-8 w-[1px] bg-slate-100 mx-2" />
-            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>*/} 
-          
-            </div> 
+            <span className="text-xs font-medium text-slate-400">Analysis by <b className="text-slate-600">Regina Beretta</b></span>*/}
+
+          </div>
         </div>
       </header>
 
@@ -1220,27 +1242,7 @@ export default function Dashboard() {
         {/* 7. CHECKLIST FINAL  */}
         <ChecklistValidator />
 
-const SimulatorIntro = () => (
-        <div className="max-w-4xl mb-8">
-          <h2 className="text-2xl font-bold text-slate-800 mb-3">
-            Sua Estratégia, <span className="text-indigo-600">Validada por Dados</span>
-          </h2>
-          <p className="text-slate-600 leading-relaxed mb-4">
-            Agora que você já conferiu as análises, que tal avaliar a <strong>qualidade estatística</strong> da aposta que você pretende fazer?
-            Nosso algoritmo cruza suas dezenas com os padrões de soma, paridade e distribuição que mais se repetiram na história.
-          </p>
-
-          <div className="flex gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-            <div className="text-amber-600 shrink-0">
-              <AlertCircle size={20} />
-            </div>
-            <p className="text-[13px] text-amber-800 leading-tight">
-              <strong>Atenção:</strong> Esta ferramenta é de apoio analítico. Padrões estatísticos ajudam a entender tendências,
-              mas não garantem prêmios ou preveem resultados, pois cada sorteio é um evento independente.
-            </p>
-          </div>
-        </div>
-        );
+        <SimulatorIntro />
 
         {/* Passamos o array termometro calculado no useMemo para o simulador usar */}
         <BetSimulator termometroData={stats.termometro} />
