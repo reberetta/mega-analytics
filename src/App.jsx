@@ -1274,7 +1274,7 @@ export default function Dashboard() {
       <footer className="max-w-7xl mx-auto px-6 border-t border-slate-100 pt-10 text-center">
         <p className="text-sm text-slate-400">
           Dados atualizados até Concurso {filteredData[0]?.concurso} • Análise e Dashboard por
-          <a href="https://reberetta.com.br" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
+          <a href="https://www.linkedin.com/in/regina-beretta/" className="text-indigo-600 font-bold ml-1 hover:underline">Regina Beretta</a>
         </p>
       </footer>
     </div>
